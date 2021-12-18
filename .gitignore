@@ -1,0 +1,7 @@
+*~
+*#
+*.user*
+/build*
+install*
+*.sw?
+tags
