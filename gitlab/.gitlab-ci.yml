@@ -1,0 +1,170 @@
+variables:
+  GIT_DEPTH: "15"
+  ErrorActionPreference: STOP
+
+stages:
+  - build
+  - test
+  - build-kw
+  - test-kw
+
+## Job Templates ##
+
+.job_template: &base_build_job
+  stage: build
+  script:
+    - gitlab/build.sh -G Ninja
+  artifacts:
+    paths:
+    - build
+
+.job_template: &build_job_docker
+  <<: *base_build_job
+  tags: [docker]
+
+.job_template: &base_functional_test_job
+  type: test
+  script:
+    - export LD_LIBRARY_PATH=./build/install/lib:$LD_LIBRARY_PATH
+    - export ANARI_LIBRARY=ospray
+    - ./build/install/bin/anari_regression_tests
+
+.job_template: &test_functional_job_docker
+  <<: *base_functional_test_job
+  tags: [docker]
+
+## Build Jobs ##
+
+build-centos7:
+  <<: *build_job_docker
+  image: $DOCKER_REGISTRY/ospray/docker-images:centos7
+  script:
+  - gitlab/build.sh
+  allow_failure: true
+
+build-ubuntu18.04:
+  <<: *build_job_docker
+  image: $DOCKER_REGISTRY/ospray/docker-images:ubuntu18.04
+  allow_failure: true
+
+build-ubuntu20.04:
+  <<: *build_job_docker
+  image: $DOCKER_REGISTRY/ospray/docker-images:ubuntu20.04
+
+build-arch:
+  <<: *build_job_docker
+  image: $DOCKER_REGISTRY/ospray/docker-images:arch
+
+build-arch-clang:
+  <<: *build_job_docker
+  image: $DOCKER_REGISTRY/ospray/docker-images:arch
+  script:
+    - export CC=clang
+    - export CXX=clang++
+    - gitlab/build.sh -G Ninja
+
+build-macOS:
+  <<: *base_build_job
+  stage: build
+  script:
+    - gitlab/build.sh
+  tags:
+    - osx
+    - clang
+
+build-windows-msvc15:
+  stage: build
+  script:
+    - gitlab\build.ps1 "Visual Studio 15 2017 Win64" "v141"
+  tags:
+    - msvc15
+    - win
+  artifacts:
+    paths:
+      - build
+    expire_in: 3 day
+  allow_failure: true
+
+## Functional Test Jobs ##
+
+test-centos7:
+  <<: *test_functional_job_docker
+  image: $DOCKER_REGISTRY/ospray/docker-images:centos7
+  dependencies: [build-centos7]
+  allow_failure: true
+
+test-ubuntu18.04:
+  <<: *test_functional_job_docker
+  image: $DOCKER_REGISTRY/ospray/docker-images:ubuntu18.04
+  dependencies: [build-ubuntu18.04]
+  allow_failure: true
+
+test-ubuntu20.04:
+  <<: *test_functional_job_docker
+  image: $DOCKER_REGISTRY/ospray/docker-images:ubuntu20.04
+  dependencies: [build-ubuntu20.04]
+
+test-arch:
+  <<: *test_functional_job_docker
+  image: $DOCKER_REGISTRY/ospray/docker-images:arch
+  dependencies: [build-arch]
+
+test-arch-clang:
+  <<: *test_functional_job_docker
+  image: $DOCKER_REGISTRY/ospray/docker-images:arch
+  dependencies: [build-arch-clang]
+
+test-macOS:
+  <<: *base_functional_test_job
+  dependencies: [build-macOS]
+  script:
+    - export DYLD_FALLBACK_LIBRARY_PATH=./build/install/lib
+    - export ANARI_LIBRARY=ospray
+    - ./build/install/bin/anari_regression_tests
+  tags: [osx,clang]
+  allow_failure: true
+
+test-windows-msvc15:
+  <<: *base_functional_test_job
+  script:
+    - gitlab\run_tests.ps1
+  dependencies: [build-windows-msvc15]
+  tags: [msvc15,win]
+  allow_failure: true
+
+## Klocwork Jobs ##
+
+.job_template: &base_kw_job
+  image: $DOCKER_REGISTRY/centos:7
+  tags: [docker]
+
+build-kw:
+  <<: *base_kw_job
+  stage: build-kw
+  script:
+    - gitlab/build-kw.sh
+    - test -s $CI_PROJECT_DIR/klocwork/build.log
+    - test -s $CI_PROJECT_DIR/klocwork/build_name
+  artifacts:
+    paths:
+        - $CI_PROJECT_DIR/klocwork/*
+  needs: []
+
+check-kw-issues:
+  <<: *base_kw_job
+  stage: test-kw
+  script:
+    - gitlab/test-kw.sh
+  needs: [build-kw]
+  allow_failure: true
+
+gen-kw-report:
+  <<: *base_kw_job
+  stage: test-kw
+  needs: [build-kw]
+  script:
+    - gitlab/kw-gen-report.sh
+    - gitlab/store-files.sh $CI_PROJECT_NAME $CI_PIPELINE_ID klocwork "klocwork/report.log"
+  artifacts:
+    paths:
+      - ./klocwork/*
