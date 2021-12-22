@@ -53,6 +53,10 @@ struct Object : public RefCounted
   int commitPriority() const;
 
  protected:
+  // Set the object param if it's valid, or remove the param if the object is
+  // null
+  void setObjectParam(const char *id, ANARIDataType type, const Object *obj);
+
   OSPObject m_object{nullptr};
   std::string m_subtype{"<none>"};
   CommitPriority m_commitPriority{CommitPriority::DEFAULT};

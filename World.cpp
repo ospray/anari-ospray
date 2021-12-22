@@ -37,12 +37,22 @@ void World::setParam(const char *_id, ANARIDataType type, const void *mem)
   std::string id(_id);
   if (id == "surface") {
     needInst = true;
-    auto handle = (*(Object **)mem)->handle();
-    ospSetParam(m_group, "geometry", enumCast<OSPDataType>(type), &handle);
+    auto *obj = (*(Object **)mem);
+    if (obj) {
+      auto handle = obj->handle();
+      ospSetParam(m_group, "geometry", enumCast<OSPDataType>(type), &handle);
+    } else {
+      ospRemoveParam(m_group, "geometry");
+    }
   } else if (id == "volume") {
     needInst = true;
-    auto handle = (*(Object **)mem)->handle();
-    ospSetParam(m_group, "volume", enumCast<OSPDataType>(type), &handle);
+    auto *obj = (*(Object **)mem);
+    if (obj) {
+      auto handle = obj->handle();
+      ospSetParam(m_group, "volume", enumCast<OSPDataType>(type), &handle);
+    } else {
+      ospRemoveParam(m_group, "volume");
+    }
   } else
     Object::setParam(id.c_str(), type, mem);
 }

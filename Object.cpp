@@ -43,10 +43,10 @@ void Object::setParam(const char *id, ANARIDataType type, const void *mem)
     return;
 
   if (anari::isObject(type)) {
-    auto handle = (*(Object **)mem)->handle();
-    ospSetParam(m_object, id, enumCast<OSPDataType>(type), &handle);
-  } else
+    setObjectParam(id, type, (*(Object **)mem));
+  } else {
     ospSetParam(m_object, id, enumCast<OSPDataType>(type), mem);
+  }
 }
 
 void Object::removeParam(const char *id)
@@ -55,6 +55,17 @@ void Object::removeParam(const char *id)
     return;
 
   ospRemoveParam(m_object, id);
+}
+
+void Object::setObjectParam(
+    const char *id, ANARIDataType type, const Object *obj)
+{
+  if (obj) {
+    auto handle = obj->handle();
+    ospSetParam(m_object, id, enumCast<OSPDataType>(type), &handle);
+  } else {
+    ospRemoveParam(m_object, id);
+  }
 }
 
 OSPObject Object::handle() const
