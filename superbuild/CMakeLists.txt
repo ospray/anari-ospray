@@ -11,6 +11,12 @@ endif()
 
 include(ExternalProject)
 
+## Superbuild options ##
+
+option(BUILD_ANARI_SDK_VIEWER "Build interactive viewer app (requires GLFW)" OFF)
+option(BUILD_TBB_FROM_SOURCE "Build TBB from source or use pre-built version?" OFF)
+option(BUILD_EMBREE_FROM_SOURCE "Build Embree or use pre-built version?" OFF)
+
 ExternalProject_Add(ospray
   URL https://github.com/ospray/ospray/archive/devel.zip
   SOURCE_SUBDIR scripts/superbuild
@@ -18,7 +24,8 @@ ExternalProject_Add(ospray
     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
     -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
     -DINSTALL_IN_SEPARATE_DIRECTORIES=OFF
-    -DBUILD_EMBREE_FROM_SOURCE=OFF
+    -DBUILD_EMBREE_FROM_SOURCE=${BUILD_EMBREE_FROM_SOURCE}
+    -DBUILD_TBB_FROM_SOURCE=${BUILD_TBB_FROM_SOURCE}
     -DBUILD_GLFW=OFF
     -DBUILD_OSPRAY_APPS=OFF
   INSTALL_COMMAND ""
@@ -29,6 +36,7 @@ ExternalProject_Add(anari
   CMAKE_ARGS
     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
     -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+    -DBUILD_VIEWER=${BUILD_ANARI_SDK_VIEWER}
 )
 
 ExternalProject_Add(anari-ospray
