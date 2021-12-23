@@ -42,6 +42,7 @@ ExternalProject_Add(anari
 ExternalProject_Add(anari-ospray
   SOURCE_SUBDIR ../../../../
   DOWNLOAD_COMMAND ""
+  BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/anari-ospray
   CMAKE_ARGS
     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
     -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
