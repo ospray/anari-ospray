@@ -36,7 +36,7 @@ include(GNUInstallDirs)
 find_package(ospray 2.9.0 REQUIRED)
 find_package(anari REQUIRED)
 
-add_library(${PROJECT_NAME} MODULE
+add_library(${PROJECT_NAME} SHARED
   OSPRayDevice.cpp
 
   Object.cpp
