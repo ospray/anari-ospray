@@ -37,6 +37,7 @@ ExternalProject_Add(anari
     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
     -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
     -DBUILD_VIEWER=${BUILD_ANARI_SDK_VIEWER}
+  INSTALL_COMMAND ""
 )
 
 ExternalProject_Add(anari-ospray
