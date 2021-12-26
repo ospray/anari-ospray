@@ -24,6 +24,7 @@
 #include "ospray/version.h"
 
 #include <algorithm>
+#include <cstdio>
 
 namespace anari {
 namespace ospray {
@@ -51,6 +52,30 @@ template <typename OBJECT_T = Object>
 static OBJECT_T *wrapped_handle_cast(ANARIObject obj)
 {
   return (OBJECT_T *)obj;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Default status function ////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+void statusFunc(void *userData,
+    ANARIDevice device,
+    ANARIObject source,
+    ANARIDataType sourceType,
+    ANARIStatusSeverity severity,
+    ANARIStatusCode code,
+    const char *message)
+{
+  if (severity == ANARI_SEVERITY_FATAL_ERROR)
+    fprintf(stderr, "[FATAL] %s\n", message);
+  else if (severity == ANARI_SEVERITY_ERROR)
+    fprintf(stderr, "[ERROR] %s\n", message);
+  else if (severity == ANARI_SEVERITY_WARNING)
+    fprintf(stderr, "[WARN ] %s\n", message);
+  else if (severity == ANARI_SEVERITY_PERFORMANCE_WARNING)
+    fprintf(stderr, "[PERF ] %s\n", message);
+  else if (severity == ANARI_SEVERITY_INFO)
+    fprintf(stderr, "[INFO] %s\n", message);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -82,6 +107,12 @@ int OSPRayDevice::deviceImplements(const char *_extension)
 
 void OSPRayDevice::deviceCommit()
 {
+  if (m_statusCallback == nullptr) {
+    if (defaultStatusCallback() != nullptr)
+      m_statusCallback = defaultStatusCallback();
+    else
+      m_statusCallback = statusFunc;
+  }
   ospDeviceSetStatusCallback(m_device, statusWrapper, this);
   ospDeviceSetErrorCallback(m_device, errorWrapper, this);
   ospDeviceCommit(m_device);
