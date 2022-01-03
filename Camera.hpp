@@ -12,6 +12,7 @@ namespace ospray {
 struct Camera : public Object
 {
   Camera(std::string subtype);
+  void setParam(const char *id, ANARIDataType type, const void *mem) override;
 };
 
 } // namespace ospray
