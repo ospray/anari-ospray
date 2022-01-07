@@ -17,6 +17,7 @@ Array::Array(void *appMem,
     ANARIMemoryDeleter deleter,
     void *deleterPtr,
     ANARIDataType elementType)
+    : count1(count1), count2(count2), count3(count3)
 {
   std::vector<OSPObject> tmpHandlesBuffer;
   OSPData tmp{nullptr};

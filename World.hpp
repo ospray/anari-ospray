@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "Array.hpp"
 #include "Object.hpp"
 
 namespace anari {
@@ -20,6 +21,12 @@ struct World : public Object
   bool needInst{false};
   OSPInstance m_instance{nullptr};
   OSPGroup m_group{nullptr};
+
+  // All instances in the scene, if the app set surface/volume and instance,
+  // we need to combine the instances with the generated instance for the
+  // surface/volume
+  IntrusivePtr<Array> m_instancesParam{nullptr};
+  OSPData m_allInstances{nullptr};
 };
 
 } // namespace ospray

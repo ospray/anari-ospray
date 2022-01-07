@@ -17,6 +17,10 @@ struct Array : public Object
       ANARIMemoryDeleter deleter,
       void *deleterPtr,
       ANARIDataType elementType);
+
+  size_t count1;
+  size_t count2;
+  size_t count3;
 };
 
 } // namespace ospray

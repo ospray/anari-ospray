@@ -17,6 +17,7 @@ World::~World()
 {
   ospRelease(m_instance);
   ospRelease(m_group);
+  ospRelease(m_allInstances);
 }
 
 void World::commit()
@@ -26,6 +27,23 @@ void World::commit()
     if (!m_instance)
       m_instance = ospNewInstance(m_group);
     ospCommit(m_instance);
+  }
+  // If we have a list of instances we need to add the generated instance to
+  // the list so that they're all included in the world
+  if (m_instance && m_instancesParam) {
+    ospRelease(m_allInstances);
+    m_allInstances =
+        ospNewData(OSP_INSTANCE, m_instancesParam->count1 + 1, 1, 1);
+    ospCopyData((OSPData)m_instancesParam->handle(), m_allInstances);
+
+    OSPData tmp = ospNewSharedData(&m_instance, OSP_INSTANCE, 1);
+    ospCopyData(tmp, m_allInstances, m_instancesParam->count1);
+    ospSetParam(m_object, "instance", OSP_DATA, &m_allInstances);
+    ospRelease(tmp);
+  } else if (m_instancesParam) {
+    auto handle = m_instancesParam->handle();
+    ospSetParam(m_object, "instance", OSP_DATA, &handle);
+  } else if (m_instance) {
     ospSetObjectAsData(m_object, "instance", OSP_INSTANCE, m_instance);
   }
 
@@ -53,8 +71,13 @@ void World::setParam(const char *_id, ANARIDataType type, const void *mem)
     } else {
       ospRemoveParam(m_group, "volume");
     }
-  } else
+  } else if (id == "instance") {
+    // We need to catch instances so that we can combine them with the
+    // generated instance for any surface or volume parameters
+    m_instancesParam = (*(Array **)mem);
+  } else {
     Object::setParam(id.c_str(), type, mem);
+  }
 }
 
 } // namespace ospray
