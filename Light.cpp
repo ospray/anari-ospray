@@ -1,8 +1,9 @@
-// Copyright 2021 Intel Corporation
+// Copyright 2021-2022 Intel Corporation
 // Copyright 2021 The Khronos Group
 // SPDX-License-Identifier: Apache-2.0
 
 #include "Light.hpp"
+#include "util/Math.hpp"
 
 namespace anari {
 namespace ospray {
@@ -20,6 +21,13 @@ void Light::setParam(const char *_id, ANARIDataType type, const void *mem)
 {
   std::string id(_id);
 
+  if (id == "angularDiameter" || id == "openingAngle" || id == "falloffAngle") {
+    float angle = rad2deg(*(const float *)mem);
+    if (id == "falloffAngle")
+      id = "penumbraAngle";
+    Object::setParam(id.c_str(), type, &angle);
+    return;
+  }
   if (id == "irradiance") {
     id = "intensity";
     uint8_t iq = OSP_INTENSITY_QUANTITY_IRRADIANCE;
