@@ -87,19 +87,19 @@ int OSPRayDevice::deviceImplements(const char *_extension)
   std::string extension = _extension;
 
   // supported
-  if (extension == ANARI_KHR_AREA_LIGHTS)
+  if (extension == "ANARI_KHR_AREA_LIGHTS")
     return 1;
-  if (extension == ANARI_KHR_TRANSFORMATION_MOTION_BLUR)
+  if (extension == "ANARI_KHR_TRANSFORMATION_MOTION_BLUR")
     return 1;
-  if (extension == ANARI_KHR_AUXILIARY_BUFFERS)
+  if (extension == "ANARI_KHR_AUXILIARY_BUFFERS")
     return 1;
-  if (extension == ANARI_KHR_FRAME_COMPLETION_CALLBACK)
+  if (extension == "ANARI_KHR_FRAME_COMPLETION_CALLBACK")
     return 1;
-  if (extension == ANARI_KHR_STOCHASTIC_RENDERING)
+  if (extension == "ANARI_KHR_STOCHASTIC_RENDERING")
     return 1;
 
   // not supported
-  if (extension == ANARI_KHR_DEVICE_SYNCHRONIZATION)
+  if (extension == "ANARI_KHR_DEVICE_SYNCHRONIZATION")
     return 0;
 
   return 0;
