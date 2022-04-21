@@ -313,7 +313,7 @@ ANARIMaterial OSPRayDevice::newMaterial(const char *_type)
 ANARISampler OSPRayDevice::newSampler(const char *_type)
 {
   std::string type(_type);
-  if (type == "image2d")
+  if (type == "image2D")
     type = "texture2d";
   return make_wrapped_handle<ANARISampler, Sampler>(type);
 }

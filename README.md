@@ -42,7 +42,7 @@ Not implemented yet:
 
 - CMake
 - C++11 compiler
-- [ANARI-SDK](https://github.com/KhronosGroup/ANARI-SDK)
+- [ANARI-SDK](https://github.com/KhronosGroup/ANARI-SDK) v0.1.0 or later
 - [OSPRay](https://www.github.com/ospray/ospray) v2.9.0, i.e., [devel
   branch](https://github.com/ospray/ospray/tree/devel)
 

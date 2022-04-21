@@ -24,7 +24,7 @@ if(NOT CMAKE_BUILD_TYPE)
   set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug;Release;RelWithDebInfo")
 endif()
 
-project(anari_library_ospray VERSION 0.1.0 LANGUAGES CXX)
+project(anari_library_ospray VERSION 0.1.1 LANGUAGES CXX)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
@@ -34,7 +34,7 @@ include(GNUInstallDirs)
 
 ## Dependencies ##
 find_package(ospray 2.9.0 REQUIRED)
-find_package(anari REQUIRED)
+find_package(anari 0.1 REQUIRED)
 
 add_library(${PROJECT_NAME} SHARED
   OSPRayDevice.cpp

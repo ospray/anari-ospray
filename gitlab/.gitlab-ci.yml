@@ -25,7 +25,7 @@ stages:
 .job_template: &base_functional_test_job
   type: test
   script:
-    - export LD_LIBRARY_PATH=./build/install/lib:$LD_LIBRARY_PATH
+    - export LD_LIBRARY_PATH=./build/install/lib:./build/install/lib64:$LD_LIBRARY_PATH
     - export ANARI_LIBRARY=ospray
     - ./build/install/bin/anari_regression_tests
 
@@ -37,10 +37,9 @@ stages:
 
 build-centos7:
   <<: *build_job_docker
-  image: $DOCKER_REGISTRY/ospray/docker-images:centos7
+  image: $DOCKER_REGISTRY/centos:7
   script:
   - gitlab/build.sh
-  allow_failure: true
 
 build-ubuntu18.04:
   <<: *build_job_docker
@@ -89,9 +88,8 @@ build-windows-msvc15:
 
 test-centos7:
   <<: *test_functional_job_docker
-  image: $DOCKER_REGISTRY/ospray/docker-images:centos7
+  image: $DOCKER_REGISTRY/centos:7
   dependencies: [build-centos7]
-  allow_failure: true
 
 test-ubuntu18.04:
   <<: *test_functional_job_docker
@@ -156,7 +154,6 @@ check-kw-issues:
   script:
     - gitlab/test-kw.sh
   needs: [build-kw]
-  allow_failure: true
 
 gen-kw-report:
   <<: *base_kw_job

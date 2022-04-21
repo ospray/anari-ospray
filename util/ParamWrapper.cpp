@@ -7,7 +7,7 @@
 // anari
 #include "anari/anari_cpp/Traits.h"
 #include "anari/anari_enums.h"
-#include "anari/detail/Helpers.h"
+#include "anari/type_utility.h"
 // std
 #include <cstring>
 #include <stdexcept>
@@ -18,7 +18,9 @@ namespace ospray {
 ParamWrapper::ParamWrapper(std::string _id, int _type, const void *_mem)
     : m_id(_id), m_type(_type)
 {
-  std::memcpy(m_mem.data(), _mem, anari::sizeOfDataType(type()));
+  if (m_mem.size() < anari::sizeOf(type()))
+    throw std::runtime_error("parameter too large");
+  std::memcpy(m_mem.data(), _mem, anari::sizeOf(type()));
   if (anari::isObject(type()))
     (*(Object **)mem())->refInc();
 }

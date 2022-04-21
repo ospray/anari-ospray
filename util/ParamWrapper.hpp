@@ -25,7 +25,7 @@ struct ParamWrapper
  private:
   std::string m_id;
   int m_type{-1};
-  std::array<unsigned char, 4 * 3 * sizeof(float)> m_mem;
+  std::array<unsigned char, 4 * 4 * sizeof(float)> m_mem;
 };
 
 } // namespace ospray

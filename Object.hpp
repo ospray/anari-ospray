@@ -8,7 +8,6 @@
 #include "ospray/ospray.h"
 // anari
 #include "anari/anari_cpp/Traits.h"
-#include "anari/detail/Helpers.h"
 #include "anari/detail/IntrusivePtr.h"
 // std
 #include <string>
