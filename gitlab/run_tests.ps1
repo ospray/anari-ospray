@@ -5,6 +5,6 @@ echo "Running tests"
 
 $env:Path += ";.\build\Release"
 $env:ANARI_LIBRARY = "ospray"
-.\build\Release\anari_regression_tests.exe
+.\build\Release\anariRenderTests.exe
 
 exit $LASTEXITCODE

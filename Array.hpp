@@ -10,12 +10,12 @@ namespace ospray {
 
 struct Array : public Object
 {
-  Array(void *appMemory,
+  Array(const void *appMemory,
       size_t count1,
       size_t count2,
       size_t count3,
       ANARIMemoryDeleter deleter,
-      void *deleterPtr,
+      const void *deleterPtr,
       ANARIDataType elementType);
 
   size_t count1;

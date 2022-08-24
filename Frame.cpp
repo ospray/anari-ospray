@@ -133,6 +133,39 @@ OSPFuture Frame::future()
   return m_future;
 }
 
+const void *Frame::map(const std::string &channel,
+    uint32_t *width,
+    uint32_t *height,
+    ANARIDataType *pixelType)
+{
+  auto fbh = handleAs<OSPFrameBuffer>();
+  *width = m_size_x;
+  *height = m_size_y;
+
+  if (channel == "color") {
+    *pixelType = m_format;
+    return ospMapFrameBuffer(fbh, OSP_FB_COLOR);
+  } else if (channel == "depth") {
+    *pixelType = ANARI_FLOAT32;
+    return ospMapFrameBuffer(fbh, OSP_FB_DEPTH);
+  } else if (channel == "albedo") {
+    // TODO: support other channel types here?
+    *pixelType = ANARI_FLOAT32_VEC3;
+    return ospMapFrameBuffer(fbh, OSP_FB_ALBEDO);
+  } else if (channel == "normal") {
+    // TODO: support other channel types here?
+    *pixelType = ANARI_FLOAT32_VEC3;
+    return ospMapFrameBuffer(fbh, OSP_FB_NORMAL);
+  } else
+    return nullptr;
+}
+
+void Frame::unmap(const char *ptr)
+{
+  auto fbh = handleAs<OSPFrameBuffer>();
+  ospUnmapFrameBuffer(ptr, fbh);
+}
+
 void Frame::constructHandle()
 {
   ospRelease(m_object);

@@ -27,7 +27,7 @@ stages:
   script:
     - export LD_LIBRARY_PATH=./build/install/lib:./build/install/lib64:$LD_LIBRARY_PATH
     - export ANARI_LIBRARY=ospray
-    - ./build/install/bin/anari_regression_tests
+    - ./build/install/bin/anariRenderTests
 
 .job_template: &test_functional_job_docker
   <<: *base_functional_test_job
@@ -118,7 +118,7 @@ test-macOS:
   script:
     - export DYLD_FALLBACK_LIBRARY_PATH=./build/install/lib
     - export ANARI_LIBRARY=ospray
-    - ./build/install/bin/anari_regression_tests
+    - ./build/install/bin/anariRenderTests
   tags: [osx,clang]
   allow_failure: true
 

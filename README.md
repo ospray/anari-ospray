@@ -6,7 +6,7 @@ to Intel® [OSPRay](https://www.ospray.org): ANARILibrary and ANARIDevice
 
 ## Status
 
-This is an experimental project, v0.1, implementation of the ANARI API
+This is an experimental project, v0.2, implementation of the ANARI API
 is incomplete.
 
 Features and extensions that should work:
@@ -36,13 +36,14 @@ Not implemented yet:
 - stridede Arrays
 - (un)mapping Arrays
 - `KHR_DEVICE_SYNCHRONIZATION`
+- switch to `FLOAT32_MAT4` for `motion.transform`
 - ...
 
 ## Requirements
 
 - CMake
 - C++11 compiler
-- [ANARI-SDK](https://github.com/KhronosGroup/ANARI-SDK) v0.1.0 or later
+- [ANARI-SDK](https://github.com/KhronosGroup/ANARI-SDK) v0.2.0 or later
 - [OSPRay](https://www.github.com/ospray/ospray) v2.9.0, i.e., [devel
   branch](https://github.com/ospray/ospray/tree/devel)
 

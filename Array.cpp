@@ -10,12 +10,12 @@
 namespace anari {
 namespace ospray {
 
-Array::Array(void *appMem,
+Array::Array(const void *appMem,
     size_t count1,
     size_t count2,
     size_t count3,
     ANARIMemoryDeleter deleter,
-    void *deleterPtr,
+    const void *deleterPtr,
     ANARIDataType elementType)
     : count1(count1), count2(count2), count3(count3)
 {

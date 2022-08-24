@@ -20,6 +20,7 @@ ParamWrapper::ParamWrapper(std::string _id, int _type, const void *_mem)
 {
   if (m_mem.size() < anari::sizeOf(type()))
     throw std::runtime_error("parameter too large");
+
   std::memcpy(m_mem.data(), _mem, anari::sizeOf(type()));
   if (anari::isObject(type()))
     (*(Object **)mem())->refInc();

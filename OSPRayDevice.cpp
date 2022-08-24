@@ -58,7 +58,7 @@ static OBJECT_T *wrapped_handle_cast(ANARIObject obj)
 // Default status function ////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-void statusFunc(void *userData,
+void statusFunc(const void *userData,
     ANARIDevice device,
     ANARIObject source,
     ANARIDataType sourceType,
@@ -82,6 +82,7 @@ void statusFunc(void *userData,
 // OSPRayDevice definitions ///////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
+/*
 int OSPRayDevice::deviceImplements(const char *_extension)
 {
   std::string extension = _extension;
@@ -104,49 +105,7 @@ int OSPRayDevice::deviceImplements(const char *_extension)
 
   return 0;
 }
-
-void OSPRayDevice::deviceCommit()
-{
-  if (m_statusCallback == nullptr) {
-    if (defaultStatusCallback() != nullptr)
-      m_statusCallback = defaultStatusCallback();
-    else
-      m_statusCallback = statusFunc;
-  }
-  ospDeviceSetStatusCallback(m_device, statusWrapper, this);
-  ospDeviceSetErrorCallback(m_device, errorWrapper, this);
-  ospDeviceCommit(m_device);
-}
-
-void OSPRayDevice::deviceSetParameter(
-    const char *_id, ANARIDataType type, const void *mem)
-{
-  std::string id(_id);
-
-  if (id == "statusCallback" && type == ANARI_STATUS_CALLBACK)
-    m_statusCallback = *(ANARIStatusCallback *)mem;
-  else if (id == "statusCallbackUserData" && type == ANARI_VOID_POINTER)
-    m_statusUserdata = (void *)mem;
-  else
-    ospDeviceSetParam(m_device, _id, enumCast<OSPDataType>(type), mem);
-}
-
-void OSPRayDevice::deviceUnsetParameter(const char * /*id*/)
-{
-  // TODO
-}
-
-void OSPRayDevice::deviceRelease()
-{
-  if (m_device)
-    ospDeviceRelease(m_device);
-}
-
-void OSPRayDevice::deviceRetain()
-{
-  if (m_device)
-    ospDeviceRetain(m_device);
-}
+*/
 
 static ANARIStatusCode ospErr2anariCode(OSPError value)
 {
@@ -197,9 +156,9 @@ void OSPRayDevice::statusWrapper(void *userdata, const char *message)
 
 // Data Arrays ////////////////////////////////////////////////////////////////
 
-ANARIArray1D OSPRayDevice::newArray1D(void *appMemory,
+ANARIArray1D OSPRayDevice::newArray1D(const void *appMemory,
     ANARIMemoryDeleter deleter,
-    void *userData,
+    const void *userData,
     ANARIDataType type,
     uint64_t numItems,
     uint64_t byteStride)
@@ -211,9 +170,9 @@ ANARIArray1D OSPRayDevice::newArray1D(void *appMemory,
       appMemory, numItems, 1, 1, deleter, userData, type);
 }
 
-ANARIArray2D OSPRayDevice::newArray2D(void *appMemory,
+ANARIArray2D OSPRayDevice::newArray2D(const void *appMemory,
     ANARIMemoryDeleter deleter,
-    void *userData,
+    const void *userData,
     ANARIDataType type,
     uint64_t numItems1,
     uint64_t numItems2,
@@ -227,9 +186,9 @@ ANARIArray2D OSPRayDevice::newArray2D(void *appMemory,
       appMemory, numItems1, numItems2, 1, deleter, userData, type);
 }
 
-ANARIArray3D OSPRayDevice::newArray3D(void *appMemory,
+ANARIArray3D OSPRayDevice::newArray3D(const void *appMemory,
     ANARIMemoryDeleter deleter,
-    void *userData,
+    const void *userData,
     ANARIDataType type,
     uint64_t numItems1,
     uint64_t numItems2,
@@ -337,6 +296,39 @@ ANARIWorld OSPRayDevice::newWorld()
   return make_wrapped_handle<ANARIWorld, World>();
 }
 
+// TODO: Should move to the JSON/Python code generator later
+static const char *osprayDeviceFeatures[] = {"ANARI_OSPRAY_DEVICE",
+    "ANARI_CORE_OBJECTS",
+    "ANARI_KHR_CAMERA_OMNIDIRECTIONAL",
+    "ANARI_KHR_CAMERA_ORTHOGRAPHIC",
+    "ANARI_KHR_CAMERA_PERSPECTIVE",
+    "ANARI_KHR_GEOMETRY_CURVE",
+    "ANARI_KHR_GEOMETRY_CYLINDER",
+    "ANARI_KHR_GEOMETRY_QUAD",
+    "ANARI_KHR_GEOMETRY_SPHERE",
+    "ANARI_KHR_GEOMETRY_TRIANGLE",
+    "ANARI_KHR_LIGHT_DIRECTIONAL",
+    "ANARI_KHR_LIGHT_POINT",
+    "ANARI_KHR_LIGHT_SPOT",
+    "ANARI_KHR_AREA_LIGHTS", // TODO: is that the right string name?
+    "ANARI_KHR_MATERIAL_MATTE",
+    "ANARI_KHR_MATERIAL_TRANSPARENT_MATTE",
+    //"ANARI_KHR_SAMPLER_IMAGE1D", supported?
+    "ANARI_KHR_SAMPLER_IMAGE2D",
+    //"ANARI_KHR_SAMPLER_IMAGE3D", support?
+    //"ANARI_KHR_SAMPLER_PRIMITIVE",// TODO: What's sampler primitve?
+    "ANARI_KHR_SAMPLER_TRANSFORM",
+    "ANARI_KHR_SPATIAL_FIELD_STRUCTURED_REGULAR",
+    "ANARI_KHR_VOLUME_SCIVIS",
+    "ANARI_CORE_API",
+    "ANARI_SPEC_ALL",
+    "ANARI_KHR_FRAME_CONTINUATION",
+    "ANARI_KHR_TRANSFORMATION_MOTION_BLUR", // TODO: right string name?
+    "ANARI_KHR_AUXILIARY_BUFFERS", // TODO: right string name?
+    "ANARI_KHR_FRAME_COMPLETION_CALLBACK", // TODO: right string name?
+    "ANARI_KHR_STOCHASTIC_RENDERING", // TODO: right string name?
+    0};
+
 int OSPRayDevice::getProperty(ANARIObject object,
     const char *name,
     ANARIDataType type,
@@ -347,7 +339,7 @@ int OSPRayDevice::getProperty(ANARIObject object,
   if (mask == ANARI_WAIT)
     flushCommitBuffer();
 
-  if ((void *)object == (void *)this) {
+  if (handleIsDevice(object)) {
     std::string prop = name;
     if (prop == "version" && type == ANARI_INT32) {
       int version = OSPRAY_VERSION_MAJOR * 10000 + OSPRAY_VERSION_MINOR * 100
@@ -363,6 +355,9 @@ int OSPRayDevice::getProperty(ANARIObject object,
     } else if (prop == "version.patch" && type == ANARI_INT32) {
       writeToVoidP(mem, OSPRAY_VERSION_PATCH);
       return 1;
+    } else if (prop == "features" && type == ANARI_VOID_POINTER) {
+      writeToVoidP(mem, osprayDeviceFeatures);
+      return 1;
     }
   } else
     return wrapped_handle_cast(object)->getProperty(name, type, mem, mask);
@@ -375,6 +370,11 @@ int OSPRayDevice::getProperty(ANARIObject object,
 void OSPRayDevice::setParameter(
     ANARIObject object, const char *name, ANARIDataType type, const void *mem)
 {
+  if (handleIsDevice(object)) {
+    deviceSetParameter(name, type, mem);
+    return;
+  }
+
   auto *wh = wrapped_handle_cast(object);
   wh->setParam(name, type, mem);
 }
@@ -382,10 +382,16 @@ void OSPRayDevice::setParameter(
 void OSPRayDevice::unsetParameter(ANARIObject /*object*/, const char * /*name*/)
 {
   // TODO
+  // Note: for devices all deviceUnsetParameter, which is also TODO
 }
 
-void OSPRayDevice::commit(ANARIObject object)
+void OSPRayDevice::commitParameters(ANARIObject object)
 {
+  if (handleIsDevice(object)) {
+    deviceCommit();
+    return;
+  }
+
   auto *wh = wrapped_handle_cast(object);
   wh->refInc(RefType::INTERNAL);
   if (wh->commitPriority() != CommitPriority::DEFAULT)
@@ -395,6 +401,11 @@ void OSPRayDevice::commit(ANARIObject object)
 
 void OSPRayDevice::release(ANARIObject object)
 {
+  if (handleIsDevice(object)) {
+    deviceRelease();
+    return;
+  }
+
   auto *wh = wrapped_handle_cast(object);
   if (wh)
     wh->refDec();
@@ -402,6 +413,11 @@ void OSPRayDevice::release(ANARIObject object)
 
 void OSPRayDevice::retain(ANARIObject object)
 {
+  if (handleIsDevice(object)) {
+    deviceRetain();
+    return;
+  }
+
   auto *wh = wrapped_handle_cast(object);
   if (wh)
     wh->refInc();
@@ -414,30 +430,21 @@ ANARIFrame OSPRayDevice::newFrame()
   return make_wrapped_handle<ANARIFrame, Frame>();
 }
 
-const void *OSPRayDevice::frameBufferMap(ANARIFrame fb_, const char *_channel)
+const void *OSPRayDevice::frameBufferMap(ANARIFrame fb_,
+    const char *_channel,
+    uint32_t *width,
+    uint32_t *height,
+    ANARIDataType *pixelType)
 {
   const std::string channel = _channel;
-
-  auto *fbw = wrapped_handle_cast(fb_);
-  auto fbh = fbw->handleAs<OSPFrameBuffer>();
-
-  if (channel == "color")
-    return ospMapFrameBuffer(fbh, OSP_FB_COLOR);
-  else if (channel == "depth")
-    return ospMapFrameBuffer(fbh, OSP_FB_DEPTH);
-  else if (channel == "albedo")
-    return ospMapFrameBuffer(fbh, OSP_FB_ALBEDO);
-  else if (channel == "normal")
-    return ospMapFrameBuffer(fbh, OSP_FB_NORMAL);
-  else
-    return nullptr;
+  auto *fbw = wrapped_handle_cast<Frame>(fb_);
+  return fbw->map(channel, width, height, pixelType);
 }
 
 void OSPRayDevice::frameBufferUnmap(ANARIFrame fb_, const char *ptr)
 {
-  auto *fbw = wrapped_handle_cast(fb_);
-  auto fbh = fbw->handleAs<OSPFrameBuffer>();
-  ospUnmapFrameBuffer(ptr, fbh);
+  auto *fbw = wrapped_handle_cast<Frame>(fb_);
+  fbw->unmap(ptr);
 }
 
 // Frame Rendering ////////////////////////////////////////////////////////////
@@ -484,21 +491,12 @@ void OSPRayDevice::discardFrame(ANARIFrame f_)
 
 OSPRayDevice::OSPRayDevice()
 {
-  OSPDevice device = ospGetCurrentDevice();
+  initOSPRayDevice();
+}
 
-  if (!device) {
-    OSPError initError = ospInit();
-
-    if (initError != OSP_NO_ERROR)
-      throw std::runtime_error("OSPRay not initialized correctly!");
-
-    device = ospGetCurrentDevice();
-    if (!device)
-      throw std::runtime_error("OSPRay device could not be fetched!");
-  }
-
-  m_device = device;
-  ospDeviceRelease(m_device);
+OSPRayDevice::OSPRayDevice(ANARILibrary library) : DeviceImpl(library)
+{
+  initOSPRayDevice();
 }
 
 OSPRayDevice::~OSPRayDevice()
@@ -527,13 +525,76 @@ void OSPRayDevice::flushCommitBuffer()
   m_objectsToCommit.clear();
 }
 
+void OSPRayDevice::deviceCommit()
+{
+  if (m_statusCallback == nullptr) {
+    if (defaultStatusCallback() != nullptr) {
+      m_statusCallback = defaultStatusCallback();
+      m_statusUserdata = defaultStatusCallbackUserPtr();
+    } else
+      m_statusCallback = statusFunc;
+  }
+  ospDeviceSetStatusCallback(m_device, statusWrapper, this);
+  ospDeviceSetErrorCallback(m_device, errorWrapper, this);
+  ospDeviceCommit(m_device);
+}
+
+void OSPRayDevice::deviceSetParameter(
+    const char *_id, ANARIDataType type, const void *mem)
+{
+  std::string id(_id);
+
+  if (id == "statusCallback" && type == ANARI_STATUS_CALLBACK)
+    m_statusCallback = *(ANARIStatusCallback *)mem;
+  else if (id == "statusCallbackUserData" && type == ANARI_VOID_POINTER)
+    m_statusUserdata = (void *)mem;
+  else
+    ospDeviceSetParam(m_device, _id, enumCast<OSPDataType>(type), mem);
+}
+
+void OSPRayDevice::deviceUnsetParameter(const char * /*id*/)
+{
+  // TODO
+}
+
+void OSPRayDevice::deviceRelease()
+{
+  if (m_device)
+    ospDeviceRelease(m_device);
+}
+
+void OSPRayDevice::deviceRetain()
+{
+  if (m_device)
+    ospDeviceRetain(m_device);
+}
+
+void OSPRayDevice::initOSPRayDevice()
+{
+  OSPDevice device = ospGetCurrentDevice();
+
+  if (!device) {
+    OSPError initError = ospInit();
+
+    if (initError != OSP_NO_ERROR)
+      throw std::runtime_error("OSPRay not initialized correctly!");
+
+    device = ospGetCurrentDevice();
+    if (!device)
+      throw std::runtime_error("OSPRay device could not be fetched!");
+  }
+
+  m_device = device;
+  ospDeviceRelease(m_device);
+}
+
 } // namespace ospray
 } // namespace anari
 
-extern "C" ANARI_DEFINE_LIBRARY_NEW_DEVICE(ospray, subtype)
+extern "C" ANARI_DEFINE_LIBRARY_NEW_DEVICE(ospray, library, subtype)
 {
   if (subtype == std::string("default") || subtype == std::string("ospray"))
-    return (ANARIDevice) new anari::ospray::OSPRayDevice();
+    return (ANARIDevice) new anari::ospray::OSPRayDevice(library);
   return nullptr;
 }
 

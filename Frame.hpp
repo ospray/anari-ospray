@@ -26,6 +26,13 @@ struct Frame : public Object
 
   OSPFuture future();
 
+  const void *map(const std::string &channel,
+      uint32_t *width,
+      uint32_t *height,
+      ANARIDataType *pixelType);
+
+  void unmap(const char *ptr);
+
  private:
   void constructHandle();
 

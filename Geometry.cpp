@@ -29,6 +29,9 @@ void Geometry::setParam(const char *_id, ANARIDataType type, const void *mem)
       m_modelParams.emplace_back("color", type, mem);
       return;
     }
+  } else if (m_subtype == "mesh") {
+    if (id == "vertex.attribute0")
+      id = "vertex.texcoord";
   }
 
   Object::setParam(id.c_str(), type, mem);

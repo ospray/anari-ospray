@@ -8,13 +8,13 @@
 #include "ospray/ospray.h"
 // anari
 #include "Object.hpp"
-#include "anari/detail/Device.h"
-#include "anari/detail/Library.h"
+#include "anari/backend/DeviceImpl.h"
+#include "anari/backend/LibraryImpl.h"
 
 namespace anari {
 namespace ospray {
 
-struct OSPRayDevice : public Device
+struct OSPRayDevice : public DeviceImpl
 {
   /////////////////////////////////////////////////////////////////////////////
   // Main interface to accepting API calls
@@ -22,38 +22,27 @@ struct OSPRayDevice : public Device
 
   // Device API ///////////////////////////////////////////////////////////////
 
-  int deviceImplements(const char *extension) override;
-
-  void deviceCommit() override;
-
-  void deviceSetParameter(
-      const char *id, ANARIDataType type, const void *mem) override;
-
-  void deviceUnsetParameter(const char *id) override;
-  void deviceRelease() override;
-  void deviceRetain() override;
-
   // Data Arrays //////////////////////////////////////////////////////////////
 
-  ANARIArray1D newArray1D(void *appMemory,
+  ANARIArray1D newArray1D(const void *appMemory,
       ANARIMemoryDeleter deleter,
-      void *userdata,
+      const void *userdata,
       ANARIDataType,
       uint64_t numItems1,
       uint64_t byteStride1) override;
 
-  ANARIArray2D newArray2D(void *appMemory,
+  ANARIArray2D newArray2D(const void *appMemory,
       ANARIMemoryDeleter deleter,
-      void *userdata,
+      const void *userdata,
       ANARIDataType,
       uint64_t numItems1,
       uint64_t numItems2,
       uint64_t byteStride1,
       uint64_t byteStride2) override;
 
-  ANARIArray3D newArray3D(void *appMemory,
+  ANARIArray3D newArray3D(const void *appMemory,
       ANARIMemoryDeleter deleter,
-      void *userdata,
+      const void *userdata,
       ANARIDataType,
       uint64_t numItems1,
       uint64_t numItems2,
@@ -107,7 +96,7 @@ struct OSPRayDevice : public Device
 
   void unsetParameter(ANARIObject object, const char *name) override;
 
-  void commit(ANARIObject object) override;
+  void commitParameters(ANARIObject object) override;
 
   void release(ANARIObject _obj) override;
   void retain(ANARIObject _obj) override;
@@ -116,7 +105,11 @@ struct OSPRayDevice : public Device
 
   ANARIFrame newFrame() override;
 
-  const void *frameBufferMap(ANARIFrame fb, const char *channel) override;
+  const void *frameBufferMap(ANARIFrame fb,
+      const char *channel,
+      uint32_t *width,
+      uint32_t *height,
+      ANARIDataType *pixelType) override;
 
   void frameBufferUnmap(ANARIFrame fb, const char *channel) override;
 
@@ -133,14 +126,26 @@ struct OSPRayDevice : public Device
   /////////////////////////////////////////////////////////////////////////////
 
   OSPRayDevice();
+  OSPRayDevice(ANARILibrary library);
   ~OSPRayDevice() override;
 
   bool isModified();
   void flushCommitBuffer();
 
  private:
+  // Handlers for device API calls
+  void deviceCommit();
+
+  void deviceSetParameter(const char *id, ANARIDataType type, const void *mem);
+
+  void deviceUnsetParameter(const char *id);
+  void deviceRelease();
+  void deviceRetain();
+
+  void initOSPRayDevice();
+
   OSPDevice m_device{nullptr};
-  void *m_statusUserdata{nullptr};
+  const void *m_statusUserdata{nullptr};
   ANARIStatusCallback m_statusCallback{nullptr};
   bool m_modified{true};
   std::vector<Object *> m_objectsToCommit;
