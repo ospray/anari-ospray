@@ -6,7 +6,7 @@ cd build
 
 cmake --version
 
-cmake -L `
+cmake -DCMAKE_INSTALL_PREFIX=install -L `
 -G $args[0] `
 -T $args[1] `
 ../superbuild

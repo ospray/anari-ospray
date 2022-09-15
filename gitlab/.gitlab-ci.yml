@@ -43,12 +43,11 @@ build-centos7:
 
 build-ubuntu18.04:
   <<: *build_job_docker
-  image: $DOCKER_REGISTRY/ospray/docker-images:ubuntu18.04
-  allow_failure: true
+  image: $DOCKER_REGISTRY/ubuntu:18.04
 
 build-ubuntu20.04:
   <<: *build_job_docker
-  image: $DOCKER_REGISTRY/ospray/docker-images:ubuntu20.04
+  image: $DOCKER_REGISTRY/ubuntu:20.04
 
 build-arch:
   <<: *build_job_docker
@@ -82,7 +81,6 @@ build-windows-msvc15:
     paths:
       - build
     expire_in: 3 day
-  allow_failure: true
 
 ## Functional Test Jobs ##
 
@@ -93,13 +91,12 @@ test-centos7:
 
 test-ubuntu18.04:
   <<: *test_functional_job_docker
-  image: $DOCKER_REGISTRY/ospray/docker-images:ubuntu18.04
+  image: $DOCKER_REGISTRY/ubuntu:18.04
   dependencies: [build-ubuntu18.04]
-  allow_failure: true
 
 test-ubuntu20.04:
   <<: *test_functional_job_docker
-  image: $DOCKER_REGISTRY/ospray/docker-images:ubuntu20.04
+  image: $DOCKER_REGISTRY/ubuntu:20.04
   dependencies: [build-ubuntu20.04]
 
 test-arch:
@@ -120,12 +117,12 @@ test-macOS:
     - export ANARI_LIBRARY=ospray
     - ./build/install/bin/anariRenderTests
   tags: [osx,clang]
-  allow_failure: true
 
 test-windows-msvc15:
   <<: *base_functional_test_job
   script:
-    - gitlab\run_tests.ps1
+    - $env:ANARI_LIBRARY = "ospray"
+    - .\build\install\bin\anariRenderTests.exe
   dependencies: [build-windows-msvc15]
   tags: [msvc15,win]
   allow_failure: true
