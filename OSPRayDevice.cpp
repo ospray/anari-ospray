@@ -591,14 +591,20 @@ void OSPRayDevice::initOSPRayDevice()
 } // namespace ospray
 } // namespace anari
 
-extern "C" ANARI_DEFINE_LIBRARY_NEW_DEVICE(ospray, library, subtype)
+#ifdef _WIN32
+#define OSPRAY_DLLEXPORT __declspec(dllexport)
+#else
+#define OSPRAY_DLLEXPORT
+#endif
+
+extern "C" OSPRAY_DLLEXPORT ANARI_DEFINE_LIBRARY_NEW_DEVICE(ospray, library, subtype)
 {
   if (subtype == std::string("default") || subtype == std::string("ospray"))
     return (ANARIDevice) new anari::ospray::OSPRayDevice(library);
   return nullptr;
 }
 
-ANARI_DEFINE_LIBRARY_LOAD_MODULE(ospray, libdata, name)
+extern "C" OSPRAY_DLLEXPORT ANARI_DEFINE_LIBRARY_LOAD_MODULE(ospray, libdata, name)
 {
   printf("...loading OSPRay module '%s'\n", name);
   ospLoadModule(name);
