@@ -1,0 +1,163 @@
+## Copyright 2009 Intel Corporation
+## SPDX-License-Identifier: Apache-2.0
+
+name: CI
+
+on:
+  push:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+### BUILD JOBS ###
+
+  build-arch:
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+    with:
+      image: ospray/docker-images:arch
+      cmd: |
+        gitlab/build.sh -G Ninja
+      artifact-out: build-arch
+      artifact-path: build/install
+
+  build-arch-clang:
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+    with:
+      image: ospray/docker-images:arch
+      cmd: |
+        CC=clang CXX=clang++ gitlab/build.sh -G Ninja
+      artifact-out: build-arch-clang
+      artifact-path: build/install
+
+  build-centos7:
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+    with:
+      image: centos:7
+      cmd: |
+        gitlab/build.sh
+      artifact-out: build-centos7
+      artifact-path: build/install
+
+  build-ubuntu18_04:
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+    with:
+      image: ubuntu:18.04
+      cmd: |
+        gitlab/build.sh -G ninja
+      artifact-out: build-ubuntu18_04
+      artifact-path: build/install
+
+  build-ubuntu20_04:
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+    with:
+      image: ubuntu:20.04
+      cmd: |
+        gitlab/build.sh -G ninja
+      artifact-out: build-ubuntu20_04
+      artifact-path: build/install
+
+  build-osx:
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
+    with:
+      cmd: |
+        gitlab/build.sh
+      artifact-out: build-osx
+      artifact-path: build/install
+
+  build-windows-msvc15:
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
+    with:
+      cmd: |
+        gitlab\build.ps1 "Visual Studio 15 2017 Win64" "v141"
+      artifact-out: build-windows-msvc15
+      artifact-path: build/install
+
+
+###
+### TEST JOBS ###
+
+  test-arch:
+    needs: build-arch
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+    with:
+      image: ospray/docker-images:arch
+      cmd: |
+        LD_LIBRARY_PATH=./build/install/lib:./build/install/lib64:$LD_LIBRARY_PATH ANARI_LIBRARY=ospray ./build/install/bin/anariRenderTests
+      artifact-in: build-arch
+
+  test-arch-clang:
+    needs: build-arch-clang
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+    with:
+      image: ospray/docker-images:arch
+      cmd: |
+        LD_LIBRARY_PATH=./build/install/lib:./build/install/lib64:$LD_LIBRARY_PATH ANARI_LIBRARY=ospray ./build/install/bin/anariRenderTests
+      artifact-in: build-arch-clang
+
+  test-centos7:
+    needs: build-centos7
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+    with:
+      image: centos:7
+      cmd: |
+        LD_LIBRARY_PATH=./build/install/lib:./build/install/lib64:$LD_LIBRARY_PATH ANARI_LIBRARY=ospray ./build/install/bin/anariRenderTests
+      artifact-in: build-centos7
+
+  test-ubuntu18_04:
+    needs: build-ubuntu18_04
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+    with:
+      image: ubuntu:18.04
+      cmd: |
+        LD_LIBRARY_PATH=./build/install/lib:./build/install/lib64:$LD_LIBRARY_PATH ANARI_LIBRARY=ospray ./build/install/bin/anariRenderTests
+      artifact-in: build-ubuntu18_04
+
+  test-ubuntu20_04:
+    needs: build-ubuntu20_04
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+    with:
+      image: ubuntu:20.04
+      cmd: |
+        LD_LIBRARY_PATH=./build/install/lib:./build/install/lib64:$LD_LIBRARY_PATH ANARI_LIBRARY=ospray ./build/install/bin/anariRenderTests
+      artifact-in: build-ubuntu20_04
+
+  test-osx:
+    needs: build-osx
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
+    with:
+      cmd: |
+        export DYLD_FALLBACK_LIBRARY_PATH=./build/install/lib
+        export ANARI_LIBRARY=ospray
+        ./build/install/bin/anariRenderTests
+      artifact-in: build-osx
+
+  test-windows-msvc15:
+    needs: build-windows-msvc15
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
+    with:
+      cmd: |
+        $env:ANARI_LIBRARY="ospray"
+        # Uncomment this line as soon it will be fixed
+        #./build/install/bin/anariRenderTests
+      artifact-in: build-windows-msvc15
+
+
+###
+### SCAN JOBS ###
+
+  static-analysis:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/static_analysis.yml@main
+    with:
+      project: anari_ospray
+      prebuild: |
+        cmake -DCMAKE_INSTALL_PREFIX=install -L -S ./superbuild -B build
+        # First build anari & ospray since these are not part of scan here
+        make -j `nproc` -C build anari ospray
+      ignore-files: CheckIncludeFile*,src.cxx*
+      build: make -C build -j `nproc` anari-ospray
+
