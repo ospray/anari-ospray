@@ -33,8 +33,27 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
 include(GNUInstallDirs)
 
 ## Dependencies ##
-find_package(ospray 2.9.0 REQUIRED)
-find_package(anari 0.2 REQUIRED)
+find_package(ospray 2.10.0 REQUIRED)
+find_package(anari 0.3.0 EXACT REQUIRED)
+find_package(Python3 REQUIRED COMPONENTS Interpreter)
+
+add_custom_command(
+  OUTPUT
+    "${CMAKE_CURRENT_BINARY_DIR}/OSPRayQueries.cpp"
+    "${CMAKE_CURRENT_BINARY_DIR}/OSPRayQueries.h"
+  COMMAND
+    ${Python3_EXECUTABLE} ${ANARI_CODE_GEN_ROOT}/generate_queries.py
+      --device "${CMAKE_CURRENT_SOURCE_DIR}/api/anari_ospray_device.json"
+      --json "${ANARI_CODE_GEN_ROOT}/api"
+      --json "${CMAKE_CURRENT_SOURCE_DIR}/api"
+      --namespace anari::ospray
+      --output "${CMAKE_CURRENT_BINARY_DIR}"
+      --prefix OSPRay
+      --includefile
+  DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/api/anari_ospray_device.json"
+    "${CMAKE_CURRENT_SOURCE_DIR}/api/anari_ospray_objects.json"
+)
 
 add_library(${PROJECT_NAME} SHARED
   OSPRayDevice.cpp
@@ -56,7 +75,15 @@ add_library(${PROJECT_NAME} SHARED
   World.cpp
 
   util/ParamWrapper.cpp
+
+  "${CMAKE_CURRENT_BINARY_DIR}/OSPRayQueries.cpp"
 )
+
+target_include_directories(${PROJECT_NAME}
+  PRIVATE
+    "${CMAKE_CURRENT_BINARY_DIR}"
+)
+
 
 target_link_libraries(${PROJECT_NAME}
 PUBLIC

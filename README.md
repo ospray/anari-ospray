@@ -20,16 +20,17 @@ Features and extensions that should work:
 - Lights
 - Cameras
 - Instances
+- Sampler `image2D` (only the `image` parameter)
+- Object introspection
 - `KHR_AREA_LIGHT`
 - `KHR_AUXILIARY_BUFFERS` of type `FLOAT32_VEC`
-- `KHR_FRAME_COMPLETION_CALLBACK`
-- `KHR_STOCHASTIC_RENDERING)`
+- `KHR_FRAME_CONTINUATION`
+- `KHR_STOCHASTIC_RENDERING`
 - `KHR_TRANSFORMATION_MOTION_BLUR`
 
 Not implemented yet:
 - Geometries: `cone`, `cylinder`, `primitive.radius` of `curve`,
   implicit `primitive.index`, i.e., primitive soups
-- Object introspection
 - Samplers
 - Attribute selection and routing for Materials
 - `{color|opacity}.position` array of `scivis` Volume
@@ -46,6 +47,7 @@ Not implemented yet:
 - [ANARI-SDK](https://github.com/KhronosGroup/ANARI-SDK) v0.2.0 or later
 - [OSPRay](https://www.github.com/ospray/ospray) v2.9.0, i.e., [devel
   branch](https://github.com/ospray/ospray/tree/devel)
+- Python 3
 
 ## Building
 

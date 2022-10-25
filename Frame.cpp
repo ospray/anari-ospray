@@ -62,6 +62,18 @@ void Frame::setParam(const char *_id, ANARIDataType type, const void *mem)
 {
   std::string id(_id);
 
+  // XXX(th): These should report a warning to the user that non-prefixed names
+  // aren't supported any more.
+  if (id == "color") {
+    id = "channel.color";
+  } else if (id == "depth") {
+    id = "channel.depth";
+  } else if (id == "normal") {
+    id = "channel.normal";
+  } else if (id == "albedo") {
+    id = "channel.albedo";
+  }
+
   auto setAsInt = [&](int &v, const size_t offs = 0) {
     v = *((const int *)mem + offs);
     m_reconstructOnCommit = true;
@@ -74,16 +86,16 @@ void Frame::setParam(const char *_id, ANARIDataType type, const void *mem)
   if (id == "size" && type == ANARI_UINT32_VEC2) {
     setAsInt(m_size_x);
     setAsInt(m_size_y, 1);
-  } else if (id == "color" && type == ANARI_DATA_TYPE)
+  } else if (id == "channel.color" && type == ANARI_DATA_TYPE)
     setAsInt(m_format);
-  else if (id == "depth" && type == ANARI_DATA_TYPE)
+  else if (id == "channel.depth" && type == ANARI_DATA_TYPE)
     m_depthBuffer = m_reconstructOnCommit = true;
-  else if (id == "albedo" && type == ANARI_DATA_TYPE)
+  else if (id == "channel.albedo" && type == ANARI_DATA_TYPE)
     if (*(const ANARIDataType *)mem == ANARI_FLOAT32_VEC3)
       m_albedoBuffer = m_reconstructOnCommit = true;
     else
       throw std::runtime_error("Unsupported albedo type.");
-  else if (id == "normal" && type == ANARI_DATA_TYPE)
+  else if (id == "channel.normal" && type == ANARI_DATA_TYPE)
     if (*(const ANARIDataType *)mem == ANARI_FLOAT32_VEC3)
       m_normalBuffer = m_reconstructOnCommit = true;
     else
@@ -133,7 +145,7 @@ OSPFuture Frame::future()
   return m_future;
 }
 
-const void *Frame::map(const std::string &channel,
+const void *Frame::map(const std::string &_channel,
     uint32_t *width,
     uint32_t *height,
     ANARIDataType *pixelType)
@@ -142,17 +154,31 @@ const void *Frame::map(const std::string &channel,
   *width = m_size_x;
   *height = m_size_y;
 
+  std::string channel(_channel);
+
+  // XXX(th): These should report a warning to the user that non-prefixed names
+  // aren't supported any more.
   if (channel == "color") {
+    channel = "channel.color";
+  } else if (channel == "depth") {
+    channel = "channel.depth";
+  } else if (channel == "albedo") {
+    channel = "channel.albedo";
+  } else if (channel == "normal") {
+    channel = "channel.normal";
+  }
+
+  if (channel == "channel.color") {
     *pixelType = m_format;
     return ospMapFrameBuffer(fbh, OSP_FB_COLOR);
-  } else if (channel == "depth") {
+  } else if (channel == "channel.depth") {
     *pixelType = ANARI_FLOAT32;
     return ospMapFrameBuffer(fbh, OSP_FB_DEPTH);
-  } else if (channel == "albedo") {
+  } else if (channel == "channel.albedo") {
     // TODO: support other channel types here?
     *pixelType = ANARI_FLOAT32_VEC3;
     return ospMapFrameBuffer(fbh, OSP_FB_ALBEDO);
-  } else if (channel == "normal") {
+  } else if (channel == "channel.normal") {
     // TODO: support other channel types here?
     *pixelType = ANARI_FLOAT32_VEC3;
     return ospMapFrameBuffer(fbh, OSP_FB_NORMAL);

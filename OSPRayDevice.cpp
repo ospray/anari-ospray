@@ -19,6 +19,9 @@
 #include "Volume.hpp"
 #include "World.hpp"
 
+// generated
+#include "OSPRayQueries.h"
+
 // ospray
 #include "ospray/ospray_cpp.h"
 #include "ospray/version.h"
@@ -296,39 +299,6 @@ ANARIWorld OSPRayDevice::newWorld()
   return make_wrapped_handle<ANARIWorld, World>();
 }
 
-// TODO: Should move to the JSON/Python code generator later
-static const char *osprayDeviceFeatures[] = {"ANARI_OSPRAY_DEVICE",
-    "ANARI_CORE_OBJECTS",
-    "ANARI_KHR_CAMERA_OMNIDIRECTIONAL",
-    "ANARI_KHR_CAMERA_ORTHOGRAPHIC",
-    "ANARI_KHR_CAMERA_PERSPECTIVE",
-    "ANARI_KHR_GEOMETRY_CURVE",
-    "ANARI_KHR_GEOMETRY_CYLINDER",
-    "ANARI_KHR_GEOMETRY_QUAD",
-    "ANARI_KHR_GEOMETRY_SPHERE",
-    "ANARI_KHR_GEOMETRY_TRIANGLE",
-    "ANARI_KHR_LIGHT_DIRECTIONAL",
-    "ANARI_KHR_LIGHT_POINT",
-    "ANARI_KHR_LIGHT_SPOT",
-    "ANARI_KHR_AREA_LIGHTS", // TODO: is that the right string name?
-    "ANARI_KHR_MATERIAL_MATTE",
-    "ANARI_KHR_MATERIAL_TRANSPARENT_MATTE",
-    //"ANARI_KHR_SAMPLER_IMAGE1D", supported?
-    "ANARI_KHR_SAMPLER_IMAGE2D",
-    //"ANARI_KHR_SAMPLER_IMAGE3D", support?
-    //"ANARI_KHR_SAMPLER_PRIMITIVE",// TODO: What's sampler primitve?
-    "ANARI_KHR_SAMPLER_TRANSFORM",
-    "ANARI_KHR_SPATIAL_FIELD_STRUCTURED_REGULAR",
-    "ANARI_KHR_VOLUME_SCIVIS",
-    "ANARI_CORE_API",
-    "ANARI_SPEC_ALL",
-    "ANARI_KHR_FRAME_CONTINUATION",
-    "ANARI_KHR_TRANSFORMATION_MOTION_BLUR", // TODO: right string name?
-    "ANARI_KHR_AUXILIARY_BUFFERS", // TODO: right string name?
-    "ANARI_KHR_FRAME_COMPLETION_CALLBACK", // TODO: right string name?
-    "ANARI_KHR_STOCHASTIC_RENDERING", // TODO: right string name?
-    0};
-
 int OSPRayDevice::getProperty(ANARIObject object,
     const char *name,
     ANARIDataType type,
@@ -356,7 +326,7 @@ int OSPRayDevice::getProperty(ANARIObject object,
       writeToVoidP(mem, OSPRAY_VERSION_PATCH);
       return 1;
     } else if (prop == "features" && type == ANARI_VOID_POINTER) {
-      writeToVoidP(mem, osprayDeviceFeatures);
+      writeToVoidP(mem, query_extensions());
       return 1;
     }
   } else
@@ -597,15 +567,63 @@ void OSPRayDevice::initOSPRayDevice()
 #define OSPRAY_DLLEXPORT
 #endif
 
-extern "C" OSPRAY_DLLEXPORT ANARI_DEFINE_LIBRARY_NEW_DEVICE(ospray, library, subtype)
+extern "C" OSPRAY_DLLEXPORT ANARI_DEFINE_LIBRARY_NEW_DEVICE(
+    ospray, library, subtype)
 {
   if (subtype == std::string("default") || subtype == std::string("ospray"))
     return (ANARIDevice) new anari::ospray::OSPRayDevice(library);
   return nullptr;
 }
 
-extern "C" OSPRAY_DLLEXPORT ANARI_DEFINE_LIBRARY_LOAD_MODULE(ospray, libdata, name)
+extern "C" OSPRAY_DLLEXPORT ANARI_DEFINE_LIBRARY_LOAD_MODULE(
+    ospray, libdata, name)
 {
   printf("...loading OSPRay module '%s'\n", name);
   ospLoadModule(name);
+}
+
+extern "C" OSPRAY_DLLEXPORT ANARI_DEFINE_LIBRARY_GET_DEVICE_SUBTYPES(
+    ospray, library)
+{
+  static const char *devices[] = {
+      "ospray",
+      nullptr,
+  };
+  return devices;
+}
+
+extern "C" OSPRAY_DLLEXPORT ANARI_DEFINE_LIBRARY_GET_OBJECT_SUBTYPES(
+    ospray, library, deviceSubtype, objectType)
+{
+  return ::anari::ospray::query_object_types(objectType);
+}
+
+extern "C" OSPRAY_DLLEXPORT ANARI_DEFINE_LIBRARY_GET_OBJECT_PROPERTY(ospray,
+    library,
+    deviceSubtype,
+    objectSubtype,
+    objectType,
+    propertyName,
+    propertyType)
+{
+  return ::anari::ospray::query_object_info(
+      objectType, objectSubtype, propertyName, propertyType);
+}
+
+extern "C" OSPRAY_DLLEXPORT ANARI_DEFINE_LIBRARY_GET_PARAMETER_PROPERTY(ospray,
+    library,
+    deviceSubtype,
+    objectSubtype,
+    objectType,
+    parameterName,
+    parameterType,
+    propertyName,
+    propertyType)
+{
+  return anari::ospray::query_param_info(objectType,
+      objectSubtype,
+      parameterName,
+      parameterType,
+      propertyName,
+      propertyType);
 }
