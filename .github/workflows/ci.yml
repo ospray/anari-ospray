@@ -20,7 +20,7 @@ jobs:
     with:
       image: ospray/docker-images:arch
       cmd: |
-        gitlab/build.sh -G Ninja
+        .github/workflows/build.sh -G Ninja
       artifact-out: build-arch
       artifact-path: build/install
 
@@ -29,7 +29,7 @@ jobs:
     with:
       image: ospray/docker-images:arch
       cmd: |
-        CC=clang CXX=clang++ gitlab/build.sh -G Ninja
+        CC=clang CXX=clang++ .github/workflows/build.sh -G Ninja
       artifact-out: build-arch-clang
       artifact-path: build/install
 
@@ -38,7 +38,7 @@ jobs:
     with:
       image: centos:7
       cmd: |
-        gitlab/build.sh
+        .github/workflows/build.sh
       artifact-out: build-centos7
       artifact-path: build/install
 
@@ -47,7 +47,7 @@ jobs:
     with:
       image: ubuntu:18.04
       cmd: |
-        gitlab/build.sh -G ninja
+        .github/workflows/build.sh -G ninja
       artifact-out: build-ubuntu18_04
       artifact-path: build/install
 
@@ -56,7 +56,7 @@ jobs:
     with:
       image: ubuntu:20.04
       cmd: |
-        gitlab/build.sh -G ninja
+        .github/workflows/build.sh -G ninja
       artifact-out: build-ubuntu20_04
       artifact-path: build/install
 
@@ -64,7 +64,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
     with:
       cmd: |
-        gitlab/build.sh
+        .github/workflows/build.sh
       artifact-out: build-osx
       artifact-path: build/install
 
@@ -72,7 +72,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       cmd: |
-        gitlab\build.ps1 "Visual Studio 15 2017 Win64" "v141"
+        .github\workflows\build.ps1 "Visual Studio 15 2017 Win64" "v141"
       artifact-out: build-windows-msvc15
       artifact-path: build/install
 
