@@ -1,0 +1,145 @@
+{
+  "info": {
+  "name": "OSPRAY_RENDERER_PATHTRACER",
+  "type": "core",
+  "dependencies": []
+  },
+ "objects": [
+  {
+   "name": "pathtracer",
+   "description": "The SciVis renderer is a fast ray tracer for scientific visualization which supports volume rendering and ambient occlusion (AO).",
+   "properties": [],
+   "type": "ANARI_RENDERER",
+   "parameters": [
+    {
+     "name": "pixelSamples",
+     "tags": [],
+     "default": 1,
+     "minimum": 1,
+     "description": "samples per pixel",
+     "types": [
+      "ANARI_INT32"
+     ]
+    },
+    {
+     "name": "maxPathLength",
+     "tags": [],
+     "default": 20,
+     "description": "maximum ray recursion depth",
+     "types": [
+      "ANARI_INT32"
+     ]
+    },
+    {
+     "name": "minContribution",
+     "tags": [],
+     "default": 0.001,
+     "description": "sample contributions below this value will be neglected to speedup rendering",
+     "types": [
+      "ANARI_FLOAT32"
+     ]
+    },
+    {
+     "name": "varianceThreshold",
+     "tags": [],
+     "default": 0.0,
+     "description": "threshold for adaptive accumulation",
+     "types": [
+      "ANARI_FLOAT32"
+     ]
+    },
+    {
+     "name": "background",
+     "tags": [],
+     "default": [
+       0.0,
+       0.0,
+       0.0,
+       1.0
+     ],
+     "description": "background color and alpha (linear A/RGB/RGBA), if no map_backplate is set",
+     "types": [
+      "ANARI_FLOAT32_VEC4"
+     ]
+    },
+    {
+     "name": "shadows",
+     "tags": [],
+     "default": false,
+     "description": "whether to compute (hard) shadows",
+     "types": [
+      "ANARI_BOOL"
+     ]
+    },
+    {
+      "name": "ambientColor",
+      "types": [
+        "ANARI_FLOAT32_VEC3"
+      ],
+      "tags": [],
+      "default": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "description": "ambient light color (RGB)"
+    },
+    {
+      "name": "ambientRadiance",
+      "types": [
+        "ANARI_FLOAT32"
+      ],
+      "tags": [],
+      "default": 0.0,
+      "description": "ambient light intensity"
+    },
+    {
+     "name": "lightSamples",
+     "tags": [],
+     "default": -1,
+     "description": "number of random light samples per path vertex, per default all light sources are sampled",
+     "types": [
+      "ANARI_INT32"
+     ]
+    },
+    {
+     "name": "roulettePathDepth",
+     "tags": [],
+     "default": 5,
+     "description": "ray recursion depth at which to start Russian roulette termination",
+     "types": [
+      "ANARI_INT32"
+     ]
+    },
+    {
+     "name": "maxScatteringEvents",
+     "tags": [],
+     "default": 20,
+     "description": "maximum number of non-specular (i.e., diffuse and glossy) bounces",
+     "types": [
+      "ANARI_INT32"
+     ]
+    },
+    {
+     "name": "maxContribution",
+     "tags": [],
+     "default": 1e20,
+     "description": "samples are clamped to this value before they are accumulated into the framebuffer",
+     "types": [
+      "ANARI_FLOAT32"
+     ]
+    },
+    {
+     "name": "backgroundRefraction",
+     "tags": [],
+     "default": false,
+     "description": "allow for alpha blending even if background is seen through refractive objects like glass",
+     "types": [
+      "ANARI_BOOL"
+     ]
+    }
+   ]
+  }
+ ]
+}
+

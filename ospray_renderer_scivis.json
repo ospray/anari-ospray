@@ -1,0 +1,136 @@
+{
+  "info": {
+  "name": "OSPRAY_RENDERER_SCIVIS",
+  "type": "core",
+  "dependencies": []
+  },
+ "objects": [
+  {
+   "name": "scivis",
+   "description": "The SciVis renderer is a fast ray tracer for scientific visualization which supports volume rendering and ambient occlusion (AO).",
+   "properties": [],
+   "type": "ANARI_RENDERER",
+   "parameters": [
+    {
+     "name": "pixelSamples",
+     "tags": [],
+     "default": 1,
+     "minimum": 1,
+     "description": "samples per pixel",
+     "types": [
+      "ANARI_INT32"
+     ]
+    },
+    {
+     "name": "maxPathLength",
+     "tags": [],
+     "default": 20,
+     "description": "maximum ray recursion depth",
+     "types": [
+      "ANARI_INT32"
+     ]
+    },
+    {
+     "name": "minContribution",
+     "tags": [],
+     "default": 0.001,
+     "description": "sample contributions below this value will be neglected to speedup rendering",
+     "types": [
+      "ANARI_FLOAT32"
+     ]
+    },
+    {
+     "name": "varianceThreshold",
+     "tags": [],
+     "default": 0.0,
+     "description": "threshold for adaptive accumulation",
+     "types": [
+      "ANARI_FLOAT32"
+     ]
+    },
+    {
+     "name": "background",
+     "tags": [],
+     "default": [
+       0.0,
+       0.0,
+       0.0,
+       1.0
+     ],
+     "description": "background color and alpha (linear A/RGB/RGBA), if no map_backplate is set",
+     "types": [
+      "ANARI_FLOAT32_VEC4"
+     ]
+    },
+    {
+     "name": "shadows",
+     "tags": [],
+     "default": false,
+     "description": "whether to compute (hard) shadows",
+     "types": [
+      "ANARI_BOOL"
+     ]
+    },
+    {
+      "name": "ambientColor",
+      "types": [
+        "ANARI_FLOAT32_VEC3"
+      ],
+      "tags": [],
+      "default": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "description": "ambient light color (RGB)"
+    },
+    {
+      "name": "ambientRadiance",
+      "types": [
+        "ANARI_FLOAT32"
+      ],
+      "tags": [],
+      "default": 0.0,
+      "description": "ambient light intensity"
+    },
+    {
+     "name": "aoSamples",
+     "tags": [],
+     "default": 0,
+     "description": "number of rays per sample to compute ambient occlusion",
+     "types": [
+      "ANARI_INT32"
+     ]
+    },
+    {
+     "name": "aoDistance",
+     "tags": [],
+     "default": 1e20,
+     "description": "maximum distance to consider for ambient occlusion",
+     "types": [
+      "ANARI_FLOAT32"
+     ]
+    },
+    {
+     "name": "volumeSamplingRate",
+     "tags": [],
+     "default": 1.0,
+     "description": "sampling rate for volumes",
+     "types": [
+      "ANARI_FLOAT32"
+     ]
+    },
+    {
+     "name": "visibleLights",
+     "tags": [],
+     "default": false,
+     "description": "whether light sources are potentially visible (as in the path tracer, regarding each light's visible)",
+     "types": [
+      "ANARI_BOOL"
+     ]
+    }
+   ]
+  }
+ ]
+}
+

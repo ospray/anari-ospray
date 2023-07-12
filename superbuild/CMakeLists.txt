@@ -18,7 +18,7 @@ option(BUILD_TBB_FROM_SOURCE "Build TBB from source or use pre-built version?" O
 option(BUILD_EMBREE_FROM_SOURCE "Build Embree or use pre-built version?" OFF)
 
 ExternalProject_Add(ospray
-  URL https://github.com/ospray/ospray/archive/v2.10.0.zip
+  URL https://github.com/ospray/ospray/archive/v2.12.0.zip
   SOURCE_SUBDIR scripts/superbuild
   CMAKE_ARGS
     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}

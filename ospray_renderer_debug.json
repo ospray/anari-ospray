@@ -1,0 +1,95 @@
+{
+  "info": {
+  "name": "OSPRAY_RENDERER_DEBUG",
+  "type": "core",
+  "dependencies": []
+  },
+ "objects": [
+  {
+    "name": "debug",
+    "description": "This renderer is used for debugging the underlying OSPRay system.",
+    "properties": [],
+    "type": "ANARI_RENDERER",
+    "parameters": [
+      {
+        "name": "method",
+        "tags": [],
+        "description": "which debugging method to use",
+        "types": [
+          "ANARI_STRING"
+        ],
+        "values": [
+          "eyeLight",
+          "rayDir",
+          "Ng",
+          "Ns",
+          "color",
+          "texCoord",
+          "backfacing_Ng",
+          "backfacing_Ns",
+          "dPds",
+          "dPdt",
+          "primID",
+          "geomID",
+          "instID",
+          "volume",
+          "rayDir",
+          "testFrame"
+        ]
+      },
+    {
+     "name": "pixelSamples",
+     "tags": [],
+     "default": 1,
+     "minimum": 1,
+     "description": "samples per pixel",
+     "types": [
+      "ANARI_INT32"
+     ]
+    },
+    {
+     "name": "maxPathLength",
+     "tags": [],
+     "default": 20,
+     "description": "maximum ray recursion depth",
+     "types": [
+      "ANARI_INT32"
+     ]
+    },
+    {
+     "name": "minContribution",
+     "tags": [],
+     "default": 0.001,
+     "description": "sample contributions below this value will be neglected to speedup rendering",
+     "types": [
+      "ANARI_FLOAT32"
+     ]
+    },
+    {
+     "name": "varianceThreshold",
+     "tags": [],
+     "default": 0.0,
+     "description": "threshold for adaptive accumulation",
+     "types": [
+      "ANARI_FLOAT32"
+     ]
+    },
+    {
+     "name": "background",
+     "tags": [],
+     "default": [
+       0.0,
+       0.0,
+       0.0,
+       1.0
+     ],
+     "description": "background color and alpha (linear A/RGB/RGBA), if no map_backplate is set",
+     "types": [
+      "ANARI_FLOAT32_VEC4"
+     ]
+    }
+    ]
+  }
+ ]
+}
+

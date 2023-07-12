@@ -1,161 +1,61 @@
-// Copyright 2021 Intel Corporation
-// Copyright 2021 The Khronos Group
+﻿// Copyright 2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-#include "OSPRayDevice.hpp"
+#include "OSPRayDevice.h"
 
-#include "Array.hpp"
-#include "Camera.hpp"
-#include "Frame.hpp"
-#include "Geometry.hpp"
-#include "Group.hpp"
-#include "Instance.hpp"
-#include "Light.hpp"
-#include "Material.hpp"
-#include "Renderer.hpp"
-#include "Sampler.hpp"
-#include "SpatialField.hpp"
-#include "Surface.hpp"
-#include "Volume.hpp"
-#include "World.hpp"
+#include "anari/ext/debug/DebugObject.h"
 
-// generated
-#include "OSPRayQueries.h"
+#include "array/Array1D.h"
+#include "array/Array2D.h"
+#include "array/Array3D.h"
+#include "array/ObjectArray.h"
+#include "frame/Frame.h"
+#include "scene/volume/spatial_field/SpatialField.h"
 
-// ospray
-#include "ospray/ospray_cpp.h"
-#include "ospray/version.h"
-
-#include <algorithm>
-#include <cstdio>
-
-namespace anari {
-namespace ospray {
-
-using namespace ::ospray;
+namespace anari_ospray {
 
 ///////////////////////////////////////////////////////////////////////////////
-// Helpers ////////////////////////////////////////////////////////////////////
+// Generated function declarations ////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T>
-inline void writeToVoidP(void *_p, T v)
+const char **query_object_types(ANARIDataType type);
+
+const void *query_object_info(ANARIDataType type,
+    const char *subtype,
+    const char *infoName,
+    ANARIDataType infoType);
+
+const void *query_param_info(ANARIDataType type,
+    const char *subtype,
+    const char *paramName,
+    ANARIDataType paramType,
+    const char *infoName,
+    ANARIDataType infoType);
+
+anari::debug_device::ObjectFactory *getDebugFactory();
+
+const char **query_extensions();
+
+///////////////////////////////////////////////////////////////////////////////
+// Helper functions ///////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+template <typename HANDLE_T, typename OBJECT_T>
+inline HANDLE_T getHandleForAPI(OBJECT_T *object)
 {
-  T *p = (T *)_p;
-  *p = v;
+  return (HANDLE_T)object;
 }
 
-template <typename HANDLE_T, typename OBJECT_T, typename... Args>
-static HANDLE_T make_wrapped_handle(Args &&...args)
+template <typename OBJECT_T, typename HANDLE_T, typename... Args>
+inline HANDLE_T createObjectForAPI(OSPRayGlobalState *s, Args &&...args)
 {
-  return (HANDLE_T) new OBJECT_T(std::forward<Args>(args)...);
-}
-
-template <typename OBJECT_T = Object>
-static OBJECT_T *wrapped_handle_cast(ANARIObject obj)
-{
-  return (OBJECT_T *)obj;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// Default status function ////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-
-void statusFunc(const void *userData,
-    ANARIDevice device,
-    ANARIObject source,
-    ANARIDataType sourceType,
-    ANARIStatusSeverity severity,
-    ANARIStatusCode code,
-    const char *message)
-{
-  if (severity == ANARI_SEVERITY_FATAL_ERROR)
-    fprintf(stderr, "[FATAL] %s", message);
-  else if (severity == ANARI_SEVERITY_ERROR)
-    fprintf(stderr, "[ERROR] %s", message);
-  else if (severity == ANARI_SEVERITY_WARNING)
-    fprintf(stderr, "[WARN ] %s", message);
-  else if (severity == ANARI_SEVERITY_PERFORMANCE_WARNING)
-    fprintf(stderr, "[PERF ] %s", message);
-  else if (severity == ANARI_SEVERITY_INFO)
-    fprintf(stderr, "[INFO ] %s", message);
+  return getHandleForAPI<HANDLE_T>(
+      new OBJECT_T(s, std::forward<Args>(args)...));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // OSPRayDevice definitions ///////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
-
-/*
-int OSPRayDevice::deviceImplements(const char *_extension)
-{
-  std::string extension = _extension;
-
-  // supported
-  if (extension == "ANARI_KHR_AREA_LIGHTS")
-    return 1;
-  if (extension == "ANARI_KHR_TRANSFORMATION_MOTION_BLUR")
-    return 1;
-  if (extension == "ANARI_KHR_AUXILIARY_BUFFERS")
-    return 1;
-  if (extension == "ANARI_KHR_FRAME_COMPLETION_CALLBACK")
-    return 1;
-  if (extension == "ANARI_KHR_STOCHASTIC_RENDERING")
-    return 1;
-
-  // not supported
-  if (extension == "ANARI_KHR_DEVICE_SYNCHRONIZATION")
-    return 0;
-
-  return 0;
-}
-*/
-
-static ANARIStatusCode ospErr2anariCode(OSPError value)
-{
-  switch (value) {
-  case OSP_NO_ERROR:
-    return ANARI_STATUS_NO_ERROR;
-  case OSP_UNKNOWN_ERROR:
-    return ANARI_STATUS_UNKNOWN_ERROR;
-  case OSP_INVALID_ARGUMENT:
-    return ANARI_STATUS_INVALID_ARGUMENT;
-  case OSP_INVALID_OPERATION:
-    return ANARI_STATUS_INVALID_OPERATION;
-  case OSP_OUT_OF_MEMORY:
-    return ANARI_STATUS_OUT_OF_MEMORY;
-  case OSP_UNSUPPORTED_CPU:
-    return ANARI_STATUS_UNSUPPORTED_DEVICE;
-  case OSP_VERSION_MISMATCH:
-    return ANARI_STATUS_VERSION_MISMATCH;
-  default:
-    return ANARI_STATUS_UNKNOWN_ERROR;
-  }
-}
-
-void OSPRayDevice::errorWrapper(
-    void *userdata, OSPError err, const char *message)
-{
-  OSPRayDevice *device = static_cast<OSPRayDevice *>(userdata);
-  device->m_statusCallback(device->m_statusUserdata,
-      (ANARIDevice)device,
-      nullptr,
-      ANARI_UNKNOWN,
-      ANARI_SEVERITY_ERROR,
-      ospErr2anariCode(err),
-      message);
-}
-
-void OSPRayDevice::statusWrapper(void *userdata, const char *message)
-{
-  OSPRayDevice *device = static_cast<OSPRayDevice *>(userdata);
-  device->m_statusCallback(device->m_statusUserdata,
-      (ANARIDevice)device,
-      nullptr,
-      ANARI_UNKNOWN,
-      ANARI_SEVERITY_INFO,
-      ANARI_STATUS_NO_ERROR,
-      message);
-}
 
 // Data Arrays ////////////////////////////////////////////////////////////////
 
@@ -163,14 +63,21 @@ ANARIArray1D OSPRayDevice::newArray1D(const void *appMemory,
     ANARIMemoryDeleter deleter,
     const void *userData,
     ANARIDataType type,
-    uint64_t numItems,
-    uint64_t byteStride)
+    uint64_t numItems)
 {
-  if (byteStride != 0)
-    throw std::runtime_error("strided arrays not yet supported");
+  OSPRayDeviceScope ds(this);
 
-  return make_wrapped_handle<ANARIArray1D, Array>(
-      appMemory, numItems, 1, 1, deleter, userData, type);
+  Array1DMemoryDescriptor md;
+  md.appMemory = appMemory;
+  md.deleter = deleter;
+  md.deleterPtr = userData;
+  md.elementType = type;
+  md.numItems = numItems;
+
+  if (anari::isObject(type))
+    return createObjectForAPI<ObjectArray, ANARIArray1D>(deviceState(), md);
+  else
+    return createObjectForAPI<Array1D, ANARIArray1D>(deviceState(), md);
 }
 
 ANARIArray2D OSPRayDevice::newArray2D(const void *appMemory,
@@ -178,15 +85,19 @@ ANARIArray2D OSPRayDevice::newArray2D(const void *appMemory,
     const void *userData,
     ANARIDataType type,
     uint64_t numItems1,
-    uint64_t numItems2,
-    uint64_t byteStride1,
-    uint64_t byteStride2)
+    uint64_t numItems2)
 {
-  if (byteStride1 != 0 || byteStride2 != 0)
-    throw std::runtime_error("strided arrays not yet supported");
+  OSPRayDeviceScope ds(this);
 
-  return make_wrapped_handle<ANARIArray2D, Array>(
-      appMemory, numItems1, numItems2, 1, deleter, userData, type);
+  Array2DMemoryDescriptor md;
+  md.appMemory = appMemory;
+  md.deleter = deleter;
+  md.deleterPtr = userData;
+  md.elementType = type;
+  md.numItems1 = numItems1;
+  md.numItems2 = numItems2;
+
+  return createObjectForAPI<Array2D, ANARIArray2D>(deviceState(), md);
 }
 
 ANARIArray3D OSPRayDevice::newArray3D(const void *appMemory,
@@ -195,435 +106,454 @@ ANARIArray3D OSPRayDevice::newArray3D(const void *appMemory,
     ANARIDataType type,
     uint64_t numItems1,
     uint64_t numItems2,
-    uint64_t numItems3,
-    uint64_t byteStride1,
-    uint64_t byteStride2,
-    uint64_t byteStride3)
+    uint64_t numItems3)
 {
-  if (byteStride1 != 0 || byteStride2 != 0 || byteStride3 != 0)
-    throw std::runtime_error("strided arrays not yet supported");
+  OSPRayDeviceScope ds(this);
 
-  return make_wrapped_handle<ANARIArray3D, Array>(
-      appMemory, numItems1, numItems2, numItems3, deleter, userData, type);
+  Array3DMemoryDescriptor md;
+  md.appMemory = appMemory;
+  md.deleter = deleter;
+  md.deleterPtr = userData;
+  md.elementType = type;
+  md.numItems1 = numItems1;
+  md.numItems2 = numItems2;
+  md.numItems3 = numItems3;
+
+  return createObjectForAPI<Array3D, ANARIArray3D>(deviceState(), md);
 }
 
 void *OSPRayDevice::mapArray(ANARIArray a)
 {
-  throw std::runtime_error("mapping arrays not yet supported");
+  OSPRayDeviceScope ds(this);
+  return helium::BaseDevice::mapArray(a);
 }
 
 void OSPRayDevice::unmapArray(ANARIArray a)
 {
-  throw std::runtime_error("unmapping arrays not yet supported");
+  OSPRayDeviceScope ds(this);
+  helium::BaseDevice::unmapArray(a);
 }
 
 // Renderable Objects /////////////////////////////////////////////////////////
 
-ANARILight OSPRayDevice::newLight(const char *_type)
+ANARILight OSPRayDevice::newLight(const char *subtype)
 {
-  std::string type(_type);
-  if (type == "directional")
-    type = "distant";
-  if (type == "point")
-    type = "sphere";
-  if (type == "ring")
-    type = "spot";
-  return make_wrapped_handle<ANARILight, Light>(type);
+  OSPRayDeviceScope ds(this);
+  return getHandleForAPI<ANARILight>(
+      Light::createInstance(subtype, deviceState()));
 }
 
-ANARICamera OSPRayDevice::newCamera(const char *type)
+ANARICamera OSPRayDevice::newCamera(const char *subtype)
 {
-  return make_wrapped_handle<ANARICamera, Camera>(type);
+  OSPRayDeviceScope ds(this);
+  return getHandleForAPI<ANARICamera>(
+      Camera::createInstance(subtype, deviceState()));
 }
 
-ANARIGeometry OSPRayDevice::newGeometry(const char *_type)
+ANARIGeometry OSPRayDevice::newGeometry(const char *subtype)
 {
-  std::string type(_type);
-  if (type == "triangle" || type == "quad")
-    type = "mesh";
-  return make_wrapped_handle<ANARIGeometry, Geometry>(type.c_str());
+  OSPRayDeviceScope ds(this);
+  return getHandleForAPI<ANARIGeometry>(
+      Geometry::createInstance(subtype, deviceState()));
 }
 
-ANARISpatialField OSPRayDevice::newSpatialField(const char *type)
+ANARISpatialField OSPRayDevice::newSpatialField(const char *subtype)
 {
-  return make_wrapped_handle<ANARISpatialField, SpatialField>(type);
+  OSPRayDeviceScope ds(this);
+  return getHandleForAPI<ANARISpatialField>(
+      SpatialField::createInstance(subtype, deviceState()));
 }
 
 ANARISurface OSPRayDevice::newSurface()
 {
-  return make_wrapped_handle<ANARISurface, Surface>();
+  OSPRayDeviceScope ds(this);
+  return createObjectForAPI<Surface, ANARISurface>(deviceState());
 }
 
-ANARIVolume OSPRayDevice::newVolume(const char *_type)
+ANARIVolume OSPRayDevice::newVolume(const char *subtype)
 {
-  std::string type(_type);
-  if (type == "scivis")
-    return make_wrapped_handle<ANARIVolume, Volume>();
-  throw std::runtime_error("could not create Volume");
+  OSPRayDeviceScope ds(this);
+  return getHandleForAPI<ANARIVolume>(
+      Volume::createInstance(subtype, deviceState()));
 }
 
-// Model Meta-Data ////////////////////////////////////////////////////////////
+// Surface Meta-Data //////////////////////////////////////////////////////////
 
-ANARIMaterial OSPRayDevice::newMaterial(const char *_type)
+ANARIMaterial OSPRayDevice::newMaterial(const char *subtype)
 {
-  std::string type(_type);
-  if (type == "matte" || type == "transparentMatte")
-    type = "obj";
-  return make_wrapped_handle<ANARIMaterial, Material>(type);
+  OSPRayDeviceScope ds(this);
+  return getHandleForAPI<ANARIMaterial>(
+      Material::createInstance(subtype, deviceState()));
 }
 
-ANARISampler OSPRayDevice::newSampler(const char *_type)
+ANARISampler OSPRayDevice::newSampler(const char *subtype)
 {
-  std::string type(_type);
-  if (type == "image2D")
-    type = "texture2d";
-  return make_wrapped_handle<ANARISampler, Sampler>(type);
+  OSPRayDeviceScope ds(this);
+  return getHandleForAPI<ANARISampler>(
+      Sampler::createInstance(subtype, deviceState()));
 }
 
 // Instancing /////////////////////////////////////////////////////////////////
 
 ANARIGroup OSPRayDevice::newGroup()
 {
-  return make_wrapped_handle<ANARIGroup, Group>();
+  OSPRayDeviceScope ds(this);
+  return createObjectForAPI<Group, ANARIGroup>(deviceState());
 }
 
 ANARIInstance OSPRayDevice::newInstance()
 {
-  return make_wrapped_handle<ANARIInstance, Instance>();
+  OSPRayDeviceScope ds(this);
+  return createObjectForAPI<Instance, ANARIInstance>(deviceState());
 }
 
 // Top-level Worlds ///////////////////////////////////////////////////////////
 
 ANARIWorld OSPRayDevice::newWorld()
 {
-  return make_wrapped_handle<ANARIWorld, World>();
+  OSPRayDeviceScope ds(this);
+  return createObjectForAPI<World, ANARIWorld>(deviceState());
 }
+
+// Query functions ////////////////////////////////////////////////////////////
+
+const char **OSPRayDevice::getObjectSubtypes(ANARIDataType objectType)
+{
+  return query_object_types(objectType);
+}
+
+const void *OSPRayDevice::getObjectInfo(ANARIDataType objectType,
+    const char *objectSubtype,
+    const char *infoName,
+    ANARIDataType infoType)
+{
+  return query_object_info(objectType, objectSubtype, infoName, infoType);
+}
+
+const void *OSPRayDevice::getParameterInfo(ANARIDataType objectType,
+    const char *objectSubtype,
+    const char *parameterName,
+    ANARIDataType parameterType,
+    const char *infoName,
+    ANARIDataType infoType)
+{
+  return query_param_info(objectType,
+      objectSubtype,
+      parameterName,
+      parameterType,
+      infoName,
+      infoType);
+}
+
+// Object + Parameter Lifetime Management /////////////////////////////////////
 
 int OSPRayDevice::getProperty(ANARIObject object,
     const char *name,
     ANARIDataType type,
     void *mem,
     uint64_t size,
-    ANARIWaitMask mask)
+    uint32_t mask)
 {
-  if (mask == ANARI_WAIT)
-    flushCommitBuffer();
+  OSPRayDeviceScope ds(this);
 
   if (handleIsDevice(object)) {
-    std::string prop = name;
-    if (prop == "version" && type == ANARI_INT32) {
-      int version = OSPRAY_VERSION_MAJOR * 10000 + OSPRAY_VERSION_MINOR * 100
-          + OSPRAY_VERSION_PATCH;
-      writeToVoidP(mem, version);
+    std::string_view prop = name;
+    if (prop == "debugObjects" && type == ANARI_FUNCTION_POINTER) {
+      helium::writeToVoidP(mem, getDebugFactory);
       return 1;
-    } else if (prop == "version.major" && type == ANARI_INT32) {
-      writeToVoidP(mem, OSPRAY_VERSION_MAJOR);
+    } else if (prop == "feature" && type == ANARI_STRING_LIST) {
+      helium::writeToVoidP(mem, query_extensions());
       return 1;
-    } else if (prop == "version.minor" && type == ANARI_INT32) {
-      writeToVoidP(mem, OSPRAY_VERSION_MINOR);
-      return 1;
-    } else if (prop == "version.patch" && type == ANARI_INT32) {
-      writeToVoidP(mem, OSPRAY_VERSION_PATCH);
-      return 1;
-    } else if (prop == "features" && type == ANARI_VOID_POINTER) {
-      writeToVoidP(mem, query_extensions());
+    } else if (prop == "ospray" && type == ANARI_BOOL) {
+      helium::writeToVoidP(mem, true);
       return 1;
     }
-  } else
-    return wrapped_handle_cast(object)->getProperty(name, type, mem, mask);
+  } else {
+    if (mask == ANARI_WAIT) {
+      deviceState()->waitOnCurrentFrame();
+      flushCommitBuffer();
+    }
+    return helium::referenceFromHandle(object).getProperty(
+        name, type, mem, mask);
+  }
 
   return 0;
 }
 
-// Object + Parameter Lifetime Management /////////////////////////////////////
-
 void OSPRayDevice::setParameter(
-    ANARIObject object, const char *name, ANARIDataType type, const void *mem)
+    ANARIObject o, const char *name, ANARIDataType type, const void *mem)
 {
-  if (handleIsDevice(object)) {
-    deviceSetParameter(name, type, mem);
-    return;
-  }
-
-  auto *wh = wrapped_handle_cast(object);
-  wh->setParam(name, type, mem);
+  OSPRayDeviceScope ds(this);
+  helium::BaseDevice::setParameter(o, name, type, mem);
 }
 
-void OSPRayDevice::unsetParameter(ANARIObject /*object*/, const char * /*name*/)
+void OSPRayDevice::unsetParameter(ANARIObject o, const char *name)
 {
-  // TODO
-  // Note: for devices all deviceUnsetParameter, which is also TODO
+  OSPRayDeviceScope ds(this);
+  helium::BaseDevice::unsetParameter(o, name);
 }
 
-void OSPRayDevice::commitParameters(ANARIObject object)
+void *OSPRayDevice::mapParameterArray1D(ANARIObject object,
+    const char *name,
+    ANARIDataType dataType,
+    uint64_t numElements1,
+    uint64_t *elementStride)
 {
-  if (handleIsDevice(object)) {
-    deviceCommit();
-    return;
-  }
-
-  auto *wh = wrapped_handle_cast(object);
-  wh->refInc(RefType::INTERNAL);
-  if (wh->commitPriority() != CommitPriority::DEFAULT)
-    m_needToSortCommits = true;
-  m_objectsToCommit.push_back(wh);
+  OSPRayDeviceScope ds(this);
+  return helium::BaseDevice::mapParameterArray1D(
+      object, name, dataType, numElements1, elementStride);
 }
 
-void OSPRayDevice::release(ANARIObject object)
+void *OSPRayDevice::mapParameterArray2D(ANARIObject object,
+    const char *name,
+    ANARIDataType dataType,
+    uint64_t numElements1,
+    uint64_t numElements2,
+    uint64_t *elementStride)
 {
-  if (handleIsDevice(object)) {
-    deviceRelease();
-    return;
-  }
-
-  auto *wh = wrapped_handle_cast(object);
-  if (wh)
-    wh->refDec();
+  OSPRayDeviceScope ds(this);
+  return helium::BaseDevice::mapParameterArray2D(
+      object, name, dataType, numElements1, numElements2, elementStride);
 }
 
-void OSPRayDevice::retain(ANARIObject object)
+void *OSPRayDevice::mapParameterArray3D(ANARIObject object,
+    const char *name,
+    ANARIDataType dataType,
+    uint64_t numElements1,
+    uint64_t numElements2,
+    uint64_t numElements3,
+    uint64_t *elementStride)
 {
-  if (handleIsDevice(object)) {
-    deviceRetain();
-    return;
-  }
+  OSPRayDeviceScope ds(this);
+  return helium::BaseDevice::mapParameterArray3D(object,
+      name,
+      dataType,
+      numElements1,
+      numElements2,
+      numElements3,
+      elementStride);
+}
 
-  auto *wh = wrapped_handle_cast(object);
-  if (wh)
-    wh->refInc();
+void OSPRayDevice::unmapParameterArray(ANARIObject object, const char *name)
+{
+  OSPRayDeviceScope ds(this);
+  helium::BaseDevice::unmapParameterArray(object, name);
+}
+
+void OSPRayDevice::commitParameters(ANARIObject o)
+{
+  OSPRayDeviceScope ds(this);
+  helium::BaseDevice::commitParameters(o);
+}
+
+void OSPRayDevice::release(ANARIObject o)
+{
+  OSPRayDeviceScope ds(this);
+  helium::BaseDevice::release(o);
+}
+
+void OSPRayDevice::retain(ANARIObject o)
+{
+  OSPRayDeviceScope ds(this);
+  helium::BaseDevice::retain(o);
 }
 
 // Frame Manipulation /////////////////////////////////////////////////////////
 
 ANARIFrame OSPRayDevice::newFrame()
 {
-  return make_wrapped_handle<ANARIFrame, Frame>();
+  OSPRayDeviceScope ds(this);
+  return createObjectForAPI<Frame, ANARIFrame>(deviceState());
 }
 
-const void *OSPRayDevice::frameBufferMap(ANARIFrame fb_,
-    const char *_channel,
+const void *OSPRayDevice::frameBufferMap(ANARIFrame f,
+    const char *channel,
     uint32_t *width,
     uint32_t *height,
     ANARIDataType *pixelType)
 {
-  const std::string channel = _channel;
-  auto *fbw = wrapped_handle_cast<Frame>(fb_);
-  return fbw->map(channel, width, height, pixelType);
+  OSPRayDeviceScope ds(this);
+  return helium::BaseDevice::frameBufferMap(
+      f, channel, width, height, pixelType);
 }
 
-void OSPRayDevice::frameBufferUnmap(ANARIFrame fb_, const char *ptr)
+void OSPRayDevice::frameBufferUnmap(ANARIFrame f, const char *channel)
 {
-  auto *fbw = wrapped_handle_cast<Frame>(fb_);
-  fbw->unmap(ptr);
+  OSPRayDeviceScope ds(this);
+  return helium::BaseDevice::frameBufferUnmap(f, channel);
 }
 
 // Frame Rendering ////////////////////////////////////////////////////////////
 
-ANARIRenderer OSPRayDevice::newRenderer(const char *_type)
+ANARIRenderer OSPRayDevice::newRenderer(const char *subtype)
 {
-  std::string type(_type);
-  if (type == "default")
-    type = "pathtracer";
-  return make_wrapped_handle<ANARIRenderer, Renderer>(type);
+  OSPRayDeviceScope ds(this);
+  return getHandleForAPI<ANARIRenderer>(
+      Renderer::createInstance(subtype, deviceState()));
 }
 
 void OSPRayDevice::renderFrame(ANARIFrame f)
 {
-  flushCommitBuffer();
-  wrapped_handle_cast<Frame>(f)->render((ANARIDevice)this);
+  OSPRayDeviceScope ds(this);
+  helium::BaseDevice::renderFrame(f);
 }
 
-int OSPRayDevice::frameReady(ANARIFrame f_, ANARIWaitMask m)
+int OSPRayDevice::frameReady(ANARIFrame f, ANARIWaitMask m)
 {
-  auto *f = wrapped_handle_cast<Frame>(f_);
-  if (m == ANARI_NO_WAIT)
-    return ospIsReady(f->future());
-  else {
-    ospWait(f->future());
-    return 1;
-  }
+  OSPRayDeviceScope ds(this);
+  return helium::BaseDevice::frameReady(f, m);
 }
 
-bool OSPRayDevice::isModified()
+void OSPRayDevice::discardFrame(ANARIFrame f)
 {
-  bool b = m_modified;
-  m_modified = false;
-  return b;
-}
-
-void OSPRayDevice::discardFrame(ANARIFrame f_)
-{
-  auto *f = wrapped_handle_cast<Frame>(f_);
-  ospCancel(f->future());
+  OSPRayDeviceScope ds(this);
+  return helium::BaseDevice::discardFrame(f);
 }
 
 // Other OSPRayDevice definitions /////////////////////////////////////////////
 
-OSPRayDevice::OSPRayDevice()
+OSPRayDevice::OSPRayDevice(ANARIStatusCallback cb, const void *ptr)
+    : helium::BaseDevice(cb, ptr)
 {
-  initOSPRayDevice();
+  m_state = std::make_unique<OSPRayGlobalState>(this_device());
+  deviceCommitParameters();
 }
 
-OSPRayDevice::OSPRayDevice(ANARILibrary library) : DeviceImpl(library)
+OSPRayDevice::OSPRayDevice(ANARILibrary l) : helium::BaseDevice(l)
 {
-  initOSPRayDevice();
+  m_state = std::make_unique<OSPRayGlobalState>(this_device());
+  deviceCommitParameters();
 }
 
 OSPRayDevice::~OSPRayDevice()
 {
+  setOSPRayDevice();
+
+  auto &state = *deviceState();
+
+  state.commitBuffer.clear();
+
+  reportMessage(ANARI_SEVERITY_DEBUG, "destroying ospray device (%p)", this);
+
   ospShutdown();
-}
 
-void OSPRayDevice::flushCommitBuffer()
-{
-  if (m_needToSortCommits) {
-    std::sort(m_objectsToCommit.begin(),
-        m_objectsToCommit.end(),
-        [](Object *o1, Object *o2) {
-          return o1->commitPriority() < o2->commitPriority();
-        });
-  }
+  // NOTE: These object leak warnings are not required to be done by
+  //       implementations as the debug layer in the SDK is far more
+  //       comprehensive and designed for detecting bugs like this. However
+  //       these simple checks are very straightforward to implement and do not
+  //       really add substantial code complexity, so they are provided out of
+  //       convenience.
 
-  m_needToSortCommits = false;
-
-  for (auto o : m_objectsToCommit) {
-    m_modified = true;
-    o->commit();
-    o->refDec(RefType::INTERNAL);
-  }
-
-  m_objectsToCommit.clear();
-}
-
-void OSPRayDevice::deviceCommit()
-{
-  if (m_statusCallback == nullptr) {
-    if (defaultStatusCallback() != nullptr) {
-      m_statusCallback = defaultStatusCallback();
-      m_statusUserdata = defaultStatusCallbackUserPtr();
-    } else
-      m_statusCallback = statusFunc;
-  }
-  ospDeviceSetStatusCallback(m_device, statusWrapper, this);
-  ospDeviceSetErrorCallback(m_device, errorWrapper, this);
-  ospDeviceCommit(m_device);
-}
-
-void OSPRayDevice::deviceSetParameter(
-    const char *_id, ANARIDataType type, const void *mem)
-{
-  std::string id(_id);
-
-  if (id == "statusCallback" && type == ANARI_STATUS_CALLBACK)
-    m_statusCallback = *(ANARIStatusCallback *)mem;
-  else if (id == "statusCallbackUserData" && type == ANARI_VOID_POINTER)
-    m_statusUserdata = (void *)mem;
-  else
-    ospDeviceSetParam(m_device, _id, enumCast<OSPDataType>(type), mem);
-}
-
-void OSPRayDevice::deviceUnsetParameter(const char * /*id*/)
-{
-  // TODO
-}
-
-void OSPRayDevice::deviceRelease()
-{
-  if (m_device)
-    ospDeviceRelease(m_device);
-}
-
-void OSPRayDevice::deviceRetain()
-{
-  if (m_device)
-    ospDeviceRetain(m_device);
-}
-
-void OSPRayDevice::initOSPRayDevice()
-{
-  OSPDevice device = ospGetCurrentDevice();
-
-  if (!device) {
-    OSPError initError = ospInit();
-
-    if (initError != OSP_NO_ERROR)
-      throw std::runtime_error("OSPRay not initialized correctly!");
-
-    device = ospGetCurrentDevice();
-    if (!device)
-      throw std::runtime_error("OSPRay device could not be fetched!");
-  }
-
-  m_device = device;
-  ospDeviceRelease(m_device);
-}
-
-} // namespace ospray
-} // namespace anari
-
-#ifdef _WIN32
-#define OSPRAY_DLLEXPORT __declspec(dllexport)
-#else
-#define OSPRAY_DLLEXPORT
-#endif
-
-extern "C" OSPRAY_DLLEXPORT ANARI_DEFINE_LIBRARY_NEW_DEVICE(
-    ospray, library, subtype)
-{
-  if (subtype == std::string("default") || subtype == std::string("ospray"))
-    return (ANARIDevice) new anari::ospray::OSPRayDevice(library);
-  return nullptr;
-}
-
-extern "C" OSPRAY_DLLEXPORT ANARI_DEFINE_LIBRARY_LOAD_MODULE(
-    ospray, libdata, name)
-{
-  printf("...loading OSPRay module '%s'\n", name);
-  ospLoadModule(name);
-}
-
-extern "C" OSPRAY_DLLEXPORT ANARI_DEFINE_LIBRARY_GET_DEVICE_SUBTYPES(
-    ospray, library)
-{
-  static const char *devices[] = {
-      "ospray",
-      nullptr,
+  auto reportLeaks = [&](size_t &count, const char *handleType) {
+    if (count != 0) {
+      reportMessage(ANARI_SEVERITY_WARNING,
+          "detected %zu leaked %s objects",
+          count,
+          handleType);
+    }
   };
-  return devices;
+
+  reportLeaks(state.objectCounts.frames, "ANARIFrame");
+  reportLeaks(state.objectCounts.cameras, "ANARICamera");
+  reportLeaks(state.objectCounts.renderers, "ANARIRenderer");
+  reportLeaks(state.objectCounts.worlds, "ANARIWorld");
+  reportLeaks(state.objectCounts.instances, "ANARIInstance");
+  reportLeaks(state.objectCounts.groups, "ANARIGroup");
+  reportLeaks(state.objectCounts.lights, "ANARILight");
+  reportLeaks(state.objectCounts.surfaces, "ANARISurface");
+  reportLeaks(state.objectCounts.geometries, "ANARIGeometry");
+  reportLeaks(state.objectCounts.materials, "ANARIMaterial");
+  reportLeaks(state.objectCounts.samplers, "ANARISampler");
+  reportLeaks(state.objectCounts.volumes, "ANARIVolume");
+  reportLeaks(state.objectCounts.spatialFields, "ANARISpatialField");
+  reportLeaks(state.objectCounts.arrays, "ANARIArray");
+
+  if (state.objectCounts.unknown != 0) {
+    reportMessage(ANARI_SEVERITY_WARNING,
+        "detected %zu leaked ANARIObject objects created by unknown subtypes",
+        state.objectCounts.unknown);
+  }
 }
 
-extern "C" OSPRAY_DLLEXPORT ANARI_DEFINE_LIBRARY_GET_OBJECT_SUBTYPES(
-    ospray, library, deviceSubtype, objectType)
+void OSPRayDevice::initDevice()
 {
-  return ::anari::ospray::query_object_types(objectType);
+  if (m_initialized)
+    return;
+
+  reportMessage(ANARI_SEVERITY_DEBUG, "initializing ospray device (%p)", this);
+
+  auto &state = *deviceState();
+
+  ospLoadModule("cpu");
+  state.osprayDevice = ospNewDevice("cpu");
+
+  ospDeviceSetErrorCallback(
+      state.osprayDevice,
+      [](void *userData, OSPError, const char *errorDetails) {
+        auto *ospd = (OSPRayDevice *)userData;
+        ospd->reportMessage(
+            ANARI_SEVERITY_ERROR, "OSPRay ERROR: %s", errorDetails);
+      },
+      this);
+
+  ospDeviceSetStatusCallback(
+      state.osprayDevice,
+      [](void *userData, const char *message) {
+        auto *ospd = (OSPRayDevice *)userData;
+        ospd->reportMessage(ANARI_SEVERITY_INFO, "OSPRay INFO: %s", message);
+      },
+      this);
+
+  auto logLevel = OSP_LOG_INFO;
+  ospDeviceSetParam(state.osprayDevice, "logLevel", OSP_INT, &logLevel);
+  ospDeviceCommit(state.osprayDevice);
+
+  m_initialized = true;
 }
 
-extern "C" OSPRAY_DLLEXPORT ANARI_DEFINE_LIBRARY_GET_OBJECT_PROPERTY(ospray,
-    library,
-    deviceSubtype,
-    objectSubtype,
-    objectType,
-    propertyName,
-    propertyType)
+void OSPRayDevice::deviceCommitParameters()
 {
-  return ::anari::ospray::query_object_info(
-      objectType, objectSubtype, propertyName, propertyType);
+  auto &state = *deviceState();
+
+  bool allowInvalidSurfaceMaterials = state.allowInvalidSurfaceMaterials;
+
+  state.allowInvalidSurfaceMaterials =
+      getParam<bool>("allowInvalidMaterials", true);
+  state.invalidMaterialColor =
+      getParam<float4>("invalidMaterialColor", float4(1.f, 0.f, 1.f, 1.f));
+
+  if (allowInvalidSurfaceMaterials != state.allowInvalidSurfaceMaterials)
+    state.objectUpdates.lastBLSReconstructSceneRequest = helium::newTimeStamp();
+
+  helium::BaseDevice::deviceCommitParameters();
 }
 
-extern "C" OSPRAY_DLLEXPORT ANARI_DEFINE_LIBRARY_GET_PARAMETER_PROPERTY(ospray,
-    library,
-    deviceSubtype,
-    objectSubtype,
-    objectType,
-    parameterName,
-    parameterType,
-    propertyName,
-    propertyType)
+void OSPRayDevice::setOSPRayDevice()
 {
-  return anari::ospray::query_param_info(objectType,
-      objectSubtype,
-      parameterName,
-      parameterType,
-      propertyName,
-      propertyType);
+  m_appDevice = ospGetCurrentDevice();
+  ospSetCurrentDevice(deviceState()->osprayDevice);
 }
+
+void OSPRayDevice::revertOSPRayDevice()
+{
+  ospSetCurrentDevice(m_appDevice);
+}
+
+OSPRayGlobalState *OSPRayDevice::deviceState() const
+{
+  return (OSPRayGlobalState *)helium::BaseDevice::m_state.get();
+}
+
+OSPRayDevice::OSPRayDeviceScope::OSPRayDeviceScope(OSPRayDevice *d)
+    : m_device(d)
+{
+  d->initDevice();
+  m_device->setOSPRayDevice();
+}
+
+OSPRayDevice::OSPRayDeviceScope::~OSPRayDeviceScope()
+{
+  m_device->revertOSPRayDevice();
+}
+
+} // namespace anari_ospray
