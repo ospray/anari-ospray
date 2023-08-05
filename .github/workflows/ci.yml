@@ -33,13 +33,13 @@ jobs:
       artifact-out: build-arch-clang
       artifact-path: build/install
 
-  build-centos7:
+  build-rocky8:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
-      image: centos:7
+      image: rockylinux:8.7
       cmd: |
         .github/workflows/build.sh
-      artifact-out: build-centos7
+      artifact-out: build-rocky8
       artifact-path: build/install
 
   build-ubuntu18_04:
@@ -60,6 +60,15 @@ jobs:
       artifact-out: build-ubuntu20_04
       artifact-path: build/install
 
+  build-ubuntu22_04:
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+    with:
+      image: ubuntu:22.04
+      cmd: |
+        .github/workflows/build.sh -G ninja
+      artifact-out: build-ubuntu22_04
+      artifact-path: build/install
+
   build-osx:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
     with:
@@ -76,6 +85,14 @@ jobs:
       artifact-out: build-windows-msvc15
       artifact-path: build/install
 
+  build-windows-msvc17:
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
+    with:
+      cmd: |
+        .github\workflows\build.ps1 "Visual Studio 17 2022" "v143"
+      artifact-out: build-windows-msvc17
+      artifact-path: build/install
+
 
 ###
 ### TEST JOBS ###
@@ -86,7 +103,7 @@ jobs:
     with:
       image: ospray/docker-images:arch
       cmd: |
-        LD_LIBRARY_PATH=./build/install/lib:./build/install/lib64:$LD_LIBRARY_PATH ANARI_LIBRARY=ospray ./build/install/bin/anariRenderTests
+        .github/workflows/test.sh
       artifact-in: build-arch
 
   test-arch-clang:
@@ -95,17 +112,17 @@ jobs:
     with:
       image: ospray/docker-images:arch
       cmd: |
-        LD_LIBRARY_PATH=./build/install/lib:./build/install/lib64:$LD_LIBRARY_PATH ANARI_LIBRARY=ospray ./build/install/bin/anariRenderTests
+        .github/workflows/test.sh
       artifact-in: build-arch-clang
 
-  test-centos7:
-    needs: build-centos7
+  test-rocky8:
+    needs: build-rocky8
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
-      image: centos:7
+      image: rockylinux:8.7
       cmd: |
-        LD_LIBRARY_PATH=./build/install/lib:./build/install/lib64:$LD_LIBRARY_PATH ANARI_LIBRARY=ospray ./build/install/bin/anariRenderTests
-      artifact-in: build-centos7
+        .github/workflows/test.sh
+      artifact-in: build-rocky8
 
   test-ubuntu18_04:
     needs: build-ubuntu18_04
@@ -113,7 +130,7 @@ jobs:
     with:
       image: ubuntu:18.04
       cmd: |
-        LD_LIBRARY_PATH=./build/install/lib:./build/install/lib64:$LD_LIBRARY_PATH ANARI_LIBRARY=ospray ./build/install/bin/anariRenderTests
+        .github/workflows/test.sh
       artifact-in: build-ubuntu18_04
 
   test-ubuntu20_04:
@@ -122,14 +139,33 @@ jobs:
     with:
       image: ubuntu:20.04
       cmd: |
+        .github/workflows/test.sh
+      artifact-in: build-ubuntu20_04
+
+  test-ubuntu20_04-all:
+    needs: build-ubuntu20_04
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+    with:
+      image: ubuntu:20.04
+      cmd: |
         LD_LIBRARY_PATH=./build/install/lib:./build/install/lib64:$LD_LIBRARY_PATH ANARI_LIBRARY=ospray ./build/install/bin/anariRenderTests
       artifact-in: build-ubuntu20_04
+
+  test-ubuntu22_04:
+    needs: build-ubuntu22_04
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+    with:
+      image: ubuntu:22.04
+      cmd: |
+        .github/workflows/test.sh
+      artifact-in: build-ubuntu22_04
 
   test-osx:
     needs: build-osx
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
     with:
       cmd: |
+        .github/workflows/test.sh
         export DYLD_FALLBACK_LIBRARY_PATH=./build/install/lib
         export ANARI_LIBRARY=ospray
         ./build/install/bin/anariRenderTests
@@ -141,9 +177,17 @@ jobs:
     with:
       cmd: |
         $env:ANARI_LIBRARY="ospray"
-        # Uncomment this line as soon it will be fixed
-        #./build/install/bin/anariRenderTests
+        ./build/install/bin/anariRenderTests
       artifact-in: build-windows-msvc15
+
+  test-windows-msvc17:
+    needs: build-windows-msvc17
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
+    with:
+      cmd: |
+        $env:ANARI_LIBRARY="ospray"
+        ./build/install/bin/anariRenderTests
+      artifact-in: build-windows-msvc17
 
 
 ###
@@ -151,13 +195,12 @@ jobs:
 
   static-analysis:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/static_analysis.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/static_analysis.yml@devel
     with:
+      coverity: true
       project: anari_ospray
-      prebuild: |
-        cmake -DCMAKE_INSTALL_PREFIX=install -L -S ./superbuild -B build
-        # First build anari & ospray since these are not part of scan here
-        make -j `nproc` -C build anari ospray
-      ignore-files: CheckIncludeFile*,src.cxx*
-      build: make -C build -j `nproc` anari-ospray
+      prebuild: >
+        cmake -DCMAKE_INSTALL_PREFIX=install -L -S ./superbuild -B build &&
+        cmake --build build --parallel --target anari ospray
+      build: cmake --build build --parallel --target anari-ospray
 
