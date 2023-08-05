@@ -23,7 +23,7 @@ set(CMAKE_INSTALL_MESSAGE LAZY)
 
 ## Establish project ##
 
-project(anari_ospray)
+project(anari_library_ospray VERSION 0.3.0 LANGUAGES CXX)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
@@ -34,10 +34,10 @@ include(cmake/cmake_project_commands.cmake)
 
 ## Dependencies ##
 
-find_package(anari REQUIRED)
-find_package(ospray REQUIRED)
+find_package(anari 0.4.0 REQUIRED)
+find_package(ospray 2.12.0 REQUIRED)
+find_package(Python3 REQUIRED COMPONENTS Interpreter)
 
-project(anari_library_ospray LANGUAGES CXX)
 
 ## Code generation ##
 
@@ -45,7 +45,7 @@ anari_generate_queries(
   NAME ospray
   PREFIX OSPRayDevice
   CPP_NAMESPACE anari_ospray
-  JSON_DEFINITIONS_FILE ${CMAKE_CURRENT_SOURCE_DIR}/ospray_extensions.json
+  JSON_DEFINITIONS_FILE ${CMAKE_CURRENT_SOURCE_DIR}/ospray_device.json
   JSON_ROOT_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}
 )
 

@@ -57,7 +57,7 @@
        0.0,
        1.0
      ],
-     "description": "background color and alpha (linear A/RGB/RGBA), if no map_backplate is set",
+     "description": "background color and alpha (linear RGBA)",
      "types": [
       "ANARI_FLOAT32_VEC4"
      ]

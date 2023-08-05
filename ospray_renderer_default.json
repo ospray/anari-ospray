@@ -7,7 +7,7 @@
  "objects": [
   {
    "name": "default",
-   "description": "The SciVis renderer is a fast ray tracer for scientific visualization which supports volume rendering and ambient occlusion (AO).",
+   "description": "The path tracer supports soft shadows, indirect illumination and realistic materials.",
    "properties": [],
    "type": "ANARI_RENDERER",
    "parameters": [
@@ -57,18 +57,9 @@
        0.0,
        1.0
      ],
-     "description": "background color and alpha (linear A/RGB/RGBA), if no map_backplate is set",
+     "description": "background color and alpha (linear RGBA)",
      "types": [
       "ANARI_FLOAT32_VEC4"
-     ]
-    },
-    {
-     "name": "shadows",
-     "tags": [],
-     "default": false,
-     "description": "whether to compute (hard) shadows",
-     "types": [
-      "ANARI_BOOL"
      ]
     },
     {
@@ -103,7 +94,7 @@
      ]
     },
     {
-     "name": "roulettePathDepth",
+     "name": "roulettePathLength",
      "tags": [],
      "default": 5,
      "description": "ray recursion depth at which to start Russian roulette termination",

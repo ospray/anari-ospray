@@ -1,6 +1,6 @@
 {
   "info": {
-    "name": "OSPRAY_DEVICE",
+    "name": "OSPRay",
     "type": "device",
     "dependencies": [
       "anari_core_1_0",
@@ -13,7 +13,7 @@
       "khr_geometry_quad",
       "khr_geometry_sphere",
       "khr_geometry_triangle",
-      "khr_light_direcitonal",
+      "khr_light_directional",
       "khr_light_point",
       "khr_light_spot",
       "khr_material_matte",
@@ -21,7 +21,7 @@
       "khr_sampler_image1d",
       "khr_sampler_image2d",
       "khr_spatial_field_structured_regular",
-      "khr_volume_scivis"
+      "khr_volume_transfer_function1d"
     ]
   },
   "objects": [
