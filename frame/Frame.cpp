@@ -187,6 +187,7 @@ void Frame::wait() const
     m_duration = ospGetTaskDuration(m_osprayFuture);
     ospRelease(m_osprayFuture);
     m_osprayFuture = nullptr;
+    deviceState()->currentFrame = nullptr;
   }
 }
 
