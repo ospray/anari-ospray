@@ -37,9 +37,13 @@ void Camera::commit()
   auto pos = getParam<float3>("position", float3(0.f));
   auto dir = normalize(getParam<float3>("direction", float3(0.f, 0.f, 1.f)));
   auto up = normalize(getParam<float3>("up", float3(0.f, 1.f, 0.f)));
+  float imgRegion[4] = {0.f, 0.f, 1.f, 1.f};
+  getParam("imageRegion", ANARI_FLOAT32_BOX2, imgRegion);
   ospSetParam(osprayCamera(), "position", OSP_VEC3F, &pos);
   ospSetParam(osprayCamera(), "direction", OSP_VEC3F, &dir);
   ospSetParam(osprayCamera(), "up", OSP_VEC3F, &up);
+  ospSetParam(osprayCamera(), "imageStart", OSP_VEC2F, &imgRegion[0]);
+  ospSetParam(osprayCamera(), "imageEnd", OSP_VEC2F, &imgRegion[2]);
   markUpdated();
 }
 
