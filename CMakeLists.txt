@@ -97,6 +97,7 @@ project_sources(PRIVATE
   scene/volume/spatial_field/AMRField.cpp
   scene/volume/spatial_field/SpatialField.cpp
   scene/volume/spatial_field/StructuredRegularField.cpp
+  scene/volume/spatial_field/UnstructuredField.cpp
 )
 
 include(GenerateExportHeader)

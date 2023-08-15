@@ -5,6 +5,7 @@
 // subtypes
 #include "AMRField.h"
 #include "StructuredRegularField.h"
+#include "UnstructuredField.h"
 
 namespace anari_ospray {
 
@@ -28,6 +29,8 @@ SpatialField *SpatialField::createInstance(
     return new StructuredRegularField(s);
   else if (subtype == "amr")
     return new AMRField(s);
+  else if (subtype == "unstructured")
+    return new UnstructuredField(s);
   else
     return (SpatialField *)new UnknownObject(ANARI_SPATIAL_FIELD, s);
 }
