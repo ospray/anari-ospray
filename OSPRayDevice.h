@@ -65,7 +65,7 @@ struct OSPRayDevice : public helium::BaseDevice
 
   ANARIGroup newGroup() override;
 
-  ANARIInstance newInstance() override;
+  ANARIInstance newInstance(const char *) override;
 
   // Top-level Worlds /////////////////////////////////////////////////////////
 

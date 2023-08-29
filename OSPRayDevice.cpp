@@ -3,8 +3,6 @@
 
 #include "OSPRayDevice.h"
 
-#include "anari/ext/debug/DebugObject.h"
-
 #include "array/Array1D.h"
 #include "array/Array2D.h"
 #include "array/Array3D.h"
@@ -31,8 +29,6 @@ const void *query_param_info(ANARIDataType type,
     ANARIDataType paramType,
     const char *infoName,
     ANARIDataType infoType);
-
-anari::debug_device::ObjectFactory *getDebugFactory();
 
 const char **query_extensions();
 
@@ -201,7 +197,7 @@ ANARIGroup OSPRayDevice::newGroup()
   return createObjectForAPI<Group, ANARIGroup>(deviceState());
 }
 
-ANARIInstance OSPRayDevice::newInstance()
+ANARIInstance OSPRayDevice::newInstance(const char * /*subtype*/)
 {
   OSPRayDeviceScope ds(this);
   return createObjectForAPI<Instance, ANARIInstance>(deviceState());
@@ -258,10 +254,7 @@ int OSPRayDevice::getProperty(ANARIObject object,
 
   if (handleIsDevice(object)) {
     std::string_view prop = name;
-    if (prop == "debugObjects" && type == ANARI_FUNCTION_POINTER) {
-      helium::writeToVoidP(mem, getDebugFactory);
-      return 1;
-    } else if (prop == "feature" && type == ANARI_STRING_LIST) {
+    if (prop == "extension" && type == ANARI_STRING_LIST) {
       helium::writeToVoidP(mem, query_extensions());
       return 1;
     } else if (prop == "ospray" && type == ANARI_BOOL) {

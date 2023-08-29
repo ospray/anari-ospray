@@ -34,10 +34,9 @@ include(cmake/cmake_project_commands.cmake)
 
 ## Dependencies ##
 
-find_package(anari 0.4.0 REQUIRED)
+find_package(anari 0.7.0 REQUIRED)
 find_package(ospray 2.12.0 REQUIRED)
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
-
 
 ## Code generation ##
 
@@ -49,14 +48,6 @@ anari_generate_queries(
   JSON_ROOT_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-anari_generate_debug_objects(
-  NAME ospray
-  PREFIX OSPRayDevice
-  CPP_NAMESPACE anari_ospray
-  JSON_DEFINITIONS_FILE ${CMAKE_CURRENT_SOURCE_DIR}/ospray_extensions.json
-  JSON_ROOT_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}
-)
-
 ## Core device target ##
 
 project_add_library(SHARED)
@@ -64,7 +55,6 @@ project_add_library(SHARED)
 project_sources(PRIVATE
   OSPRayDevice.cpp
   OSPRayDeviceQueries.cpp
-  OSPRayDeviceDebugFactory.cpp
   OSPRayGlobalState.cpp
   OSPRayLibrary.cpp
   Object.cpp
@@ -121,12 +111,7 @@ PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
 )
 
-project_link_libraries(
-PUBLIC
-  anari::anari_library_debug
-  anari::helium
-  ospray::ospray
-)
+project_link_libraries(PUBLIC anari::helium ospray::ospray)
 
 if(WIN32)
   project_compile_definitions(PRIVATE _USE_MATH_DEFINES)
