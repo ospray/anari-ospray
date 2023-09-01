@@ -198,7 +198,8 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/static_analysis.yml@devel
     with:
       coverity: true
-      project: anari_ospray
+      project: ANARI OSPRay
+      server: prod4
       prebuild: >
         cmake -DCMAKE_INSTALL_PREFIX=install -L -S ./superbuild -B build &&
         cmake --build build --parallel --target anari ospray
