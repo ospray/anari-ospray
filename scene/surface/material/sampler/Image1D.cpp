@@ -32,10 +32,10 @@ void Image1D::commit()
 
   auto ot = osprayTexture();
   auto format = OSP_TEXTURE_RGBA32F;
-  ospSetParam(ot, "format", OSP_INT, &format);
+  ospSetParam(ot, "format", OSP_UINT, &format);
   auto filter =
-      linearFilter ? OSP_TEXTURE_FILTER_BILINEAR : OSP_TEXTURE_FILTER_NEAREST;
-  ospSetParam(ot, "filter", OSP_INT, &filter);
+      linearFilter ? OSP_TEXTURE_FILTER_LINEAR : OSP_TEXTURE_FILTER_NEAREST;
+  ospSetParam(ot, "filter", OSP_UINT, &filter);
 
   auto unpackedColors = convertToColorArray(*m_image);
   auto d = ospNewSharedData1D(

@@ -12,7 +12,7 @@ Material::Material(OSPRayGlobalState *s, const char *osptype)
     : Object(ANARI_MATERIAL, s)
 {
   s->objectCounts.materials++;
-  m_osprayMaterial = ospNewMaterial("", osptype);
+  m_osprayMaterial = ospNewMaterial(osptype);
 }
 
 Material::~Material()

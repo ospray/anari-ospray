@@ -206,7 +206,7 @@ void Array::initManagedMemory()
 void Array::notifyObserver(BaseObject *o) const
 {
   o->markUpdated();
-  deviceState()->commitBuffer.addObject(o);
+  deviceState()->commitBufferAddObject(o);
 }
 
 void Array::makeOSPRayDataObject()

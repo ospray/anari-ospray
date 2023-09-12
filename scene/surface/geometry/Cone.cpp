@@ -87,8 +87,8 @@ void Cone::commit()
   auto curveType = OSP_DISJOINT;
   auto curveBasis = OSP_LINEAR;
 
-  ospSetParam(og, "type", OSP_UCHAR, &curveType);
-  ospSetParam(og, "basis", OSP_UCHAR, &curveBasis);
+  ospSetParam(og, "type", OSP_UINT, &curveType);
+  ospSetParam(og, "basis", OSP_UINT, &curveBasis);
 
   ospCommit(og);
 

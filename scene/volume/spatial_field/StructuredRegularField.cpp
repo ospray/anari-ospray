@@ -28,8 +28,8 @@ void StructuredRegularField::commit()
   ospSetParam(ov, "gridSpacing", OSP_VEC3F, &spacing);
   auto od = m_data->osprayData();
   ospSetParam(ov, "data", OSP_DATA, &od);
-  auto filter = OSP_VOLUME_FILTER_TRILINEAR;
-  ospSetParam(ov, "filter", OSP_INT, &filter);
+  auto filter = OSP_VOLUME_FILTER_LINEAR;
+  ospSetParam(ov, "filter", OSP_UINT, &filter);
   ospCommit(ov);
 }
 
