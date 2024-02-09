@@ -40,13 +40,7 @@ find_package(Python3 REQUIRED COMPONENTS Interpreter)
 
 ## Code generation ##
 
-anari_generate_queries(
-  NAME ospray
-  PREFIX OSPRayDevice
-  CPP_NAMESPACE anari_ospray
-  JSON_DEFINITIONS_FILE ${CMAKE_CURRENT_SOURCE_DIR}/ospray_device.json
-  JSON_ROOT_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}
-)
+add_subdirectory(code_gen)
 
 ## Core device target ##
 
@@ -54,7 +48,7 @@ project_add_library(SHARED)
 
 project_sources(PRIVATE
   OSPRayDevice.cpp
-  OSPRayDeviceQueries.cpp
+  code_gen/OSPRayDeviceQueries.cpp
   OSPRayGlobalState.cpp
   OSPRayLibrary.cpp
   Object.cpp

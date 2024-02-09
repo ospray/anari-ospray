@@ -1,7 +1,7 @@
 {
   "info": {
   "name": "OSPRAY_RENDERER_PATHTRACER",
-  "type": "core",
+  "type": "extension",
   "dependencies": []
   },
  "objects": [
