@@ -18,7 +18,7 @@ TransferFunction1DVolume::~TransferFunction1DVolume()
 
 void TransferFunction1DVolume::commit()
 {
-  m_field = getParamObject<SpatialField>("field");
+  m_field = getParamObject<SpatialField>("value");
   if (!m_field) {
     reportMessage(
         ANARI_SEVERITY_WARNING, "no spatial field provided to scivis volume");
