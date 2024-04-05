@@ -45,7 +45,7 @@ jobs:
       artifact-path: build/install
 
   build-ubuntu18_04:
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@v1
     with:
       image: ubuntu:18.04
       cmd: |
@@ -128,7 +128,7 @@ jobs:
 
   test-ubuntu18_04:
     needs: build-ubuntu18_04
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@v1
     with:
       image: ubuntu:18.04
       cmd: |
