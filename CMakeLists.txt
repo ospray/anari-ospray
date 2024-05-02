@@ -71,6 +71,7 @@ project_sources(PRIVATE
   scene/light/Directional.cpp
   scene/light/Light.cpp
   scene/light/Point.cpp
+  scene/light/Quad.cpp
   scene/light/Spot.cpp
   scene/surface/Surface.cpp
   scene/surface/geometry/Cone.cpp

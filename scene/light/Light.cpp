@@ -5,6 +5,7 @@
 // subtypes
 #include "Directional.h"
 #include "Point.h"
+#include "Quad.h"
 #include "Spot.h"
 
 namespace anari_ospray {
@@ -27,6 +28,8 @@ Light *Light::createInstance(std::string_view subtype, OSPRayGlobalState *s)
     return new Directional(s);
   else if (subtype == "point")
     return new Point(s);
+  else if (subtype == "quad")
+    return new QuadLight(s);
   else if (subtype == "spot")
     return new Spot(s);
   else
