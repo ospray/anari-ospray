@@ -15,8 +15,14 @@ struct Light : public Object
   static Light *createInstance(std::string_view subtype, OSPRayGlobalState *d);
 
   void markCommitted() override;
+  void commit() override;
 
   OSPLight osprayLight() const;
+
+ protected:
+  bool visible{true};
+  float3 color{1};
+  float intensity{1};
 
  private:
   OSPLight m_osprayLight{nullptr};

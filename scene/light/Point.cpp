@@ -11,18 +11,27 @@ void Point::commit()
 {
   Light::commit();
 
-  auto color = getParam<float3>("color", float3(1, 1, 1));
   auto position = getParam<float3>("position", float3(0, 0, 0));
   auto radius = getParam<float>("radius", 0.f);
-  auto irradiance = std::clamp(getParam<float>("intensity", 1.f),
-      0.f,
-      std::numeric_limits<float>::max());
+
+  OSPIntensityQuantity quantity = OSP_INTENSITY_QUANTITY_INTENSITY;
+  if (hasParam("intensity")) {
+    intensity = getParam<float>("intensity", 1.f);
+  } else if (hasParam("power")) {
+    intensity = getParam<float>("power", 1.f);
+    quantity = OSP_INTENSITY_QUANTITY_POWER;
+  } else if (hasParam("radiance")) {
+    intensity = getParam<float>("radiance", 1.f);
+    quantity = OSP_INTENSITY_QUANTITY_RADIANCE;
+  }
 
   auto ol = osprayLight();
+  ospSetParam(ol, "visible", OSP_BOOL, &visible);
   ospSetParam(ol, "color", OSP_VEC3F, &color);
   ospSetParam(ol, "position", OSP_VEC3F, &position);
   ospSetParam(ol, "radius", OSP_FLOAT, &radius);
-  ospSetParam(ol, "intensity", OSP_FLOAT, &irradiance);
+  ospSetParam(ol, "intensity", OSP_FLOAT, &intensity);
+  ospSetParam(ol, "intensityQuantity", OSP_UINT, &quantity);
   ospCommit(ol);
 }
 

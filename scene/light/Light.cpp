@@ -4,6 +4,7 @@
 #include "Light.h"
 // subtypes
 #include "Directional.h"
+#include "HDRI.h"
 #include "Point.h"
 #include "Quad.h"
 #include "Spot.h"
@@ -26,11 +27,13 @@ Light *Light::createInstance(std::string_view subtype, OSPRayGlobalState *s)
 {
   if (subtype == "directional")
     return new Directional(s);
+  else if (subtype == "hdri")
+    return new HDRI(s);
   else if (subtype == "point")
     return new Point(s);
   else if (subtype == "quad")
     return new QuadLight(s);
-  else if (subtype == "spot")
+  else if (subtype == "spot" || subtype == "ring")
     return new Spot(s);
   else
     return (Light *)new UnknownObject(ANARI_LIGHT, s);
@@ -41,6 +44,12 @@ void Light::markCommitted()
   Object::markCommitted();
   deviceState()->objectUpdates.lastBLSCommitSceneRequest =
       helium::newTimeStamp();
+}
+void Light::commit()
+{
+  visible = getParam<bool>("visible", true);
+  color = getParam<float3>("color", float3(1, 1, 1));
+  intensity = 1.f;
 }
 
 OSPLight Light::osprayLight() const

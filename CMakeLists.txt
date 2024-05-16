@@ -69,6 +69,7 @@ project_sources(PRIVATE
   scene/Instance.cpp
   scene/World.cpp
   scene/light/Directional.cpp
+  scene/light/HDRI.cpp
   scene/light/Light.cpp
   scene/light/Point.cpp
   scene/light/Quad.cpp
