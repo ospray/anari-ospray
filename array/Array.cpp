@@ -203,12 +203,6 @@ void Array::initManagedMemory()
   }
 }
 
-void Array::notifyObserver(BaseObject *o) const
-{
-  o->markUpdated();
-  deviceState()->commitBufferAddObject(o);
-}
-
 void Array::makeOSPRayDataObject()
 {
   // no-op

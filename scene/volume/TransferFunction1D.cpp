@@ -6,7 +6,7 @@
 namespace anari_ospray {
 
 TransferFunction1DVolume::TransferFunction1DVolume(OSPRayGlobalState *d)
-    : Volume(d)
+    : Volume(d), m_field(this), m_colorData(this), m_opacityData(this)
 {
   m_osprayTF = ospNewTransferFunction("piecewiseLinear");
 }

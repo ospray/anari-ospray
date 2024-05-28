@@ -7,7 +7,7 @@
 
 namespace anari_ospray {
 
-Group::Group(OSPRayGlobalState *s) : Object(ANARI_GROUP, s)
+Group::Group(OSPRayGlobalState *s) : Object(ANARI_GROUP, s), m_surfaceData(this), m_volumeData(this), m_lightData(this)
 {
   s->objectCounts.groups++;
   m_osprayGroup = ospNewGroup();
@@ -46,13 +46,6 @@ void Group::commit()
   m_surfaceData = getParamObject<ObjectArray>("surface");
   m_volumeData = getParamObject<ObjectArray>("volume");
   m_lightData = getParamObject<ObjectArray>("light");
-
-  if (m_surfaceData)
-    m_surfaceData->addCommitObserver(this);
-  if (m_volumeData)
-    m_volumeData->addCommitObserver(this);
-  if (m_lightData)
-    m_lightData->addCommitObserver(this);
 }
 
 void Group::markCommitted()
@@ -176,13 +169,6 @@ void Group::ospraySceneCommit()
 
 void Group::cleanup()
 {
-  if (m_surfaceData)
-    m_surfaceData->removeCommitObserver(this);
-  if (m_volumeData)
-    m_volumeData->removeCommitObserver(this);
-  if (m_lightData)
-    m_lightData->removeCommitObserver(this);
-
   m_objectUpdates.lastSceneConstruction = 0;
   m_objectUpdates.lastSceneCommit = 0;
 }

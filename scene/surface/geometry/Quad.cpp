@@ -7,13 +7,11 @@
 
 namespace anari_ospray {
 
-Quad::Quad(OSPRayGlobalState *s) : Geometry(s, "mesh") {}
+Quad::Quad(OSPRayGlobalState *s) : Geometry(s, "mesh"), m_index(this), m_vertexPosition(this) {}
 
 void Quad::commit()
 {
   Geometry::commit();
-
-  cleanup();
 
   m_index = getParamObject<Array1D>("primitive.index");
   m_vertexPosition = getParamObject<Array1D>("vertex.position");
@@ -28,10 +26,6 @@ void Quad::commit()
         "missing required parameter 'vertex.position' on quad geometry");
     return;
   }
-
-  m_vertexPosition->addCommitObserver(this);
-  if (m_index)
-    m_index->addCommitObserver(this);
 
   auto og = osprayGeometry();
 
@@ -117,14 +111,6 @@ void Quad::setTextureCoordinateAttribute(Attribute attr)
 
   ospCommit(og);
   m_texcoords = std::move(unpackedValues);
-}
-
-void Quad::cleanup()
-{
-  if (m_index)
-    m_index->removeCommitObserver(this);
-  if (m_vertexPosition)
-    m_vertexPosition->removeCommitObserver(this);
 }
 
 } // namespace anari_ospray

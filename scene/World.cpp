@@ -5,7 +5,7 @@
 
 namespace anari_ospray {
 
-World::World(OSPRayGlobalState *s) : Object(ANARI_WORLD, s)
+World::World(OSPRayGlobalState *s) : Object(ANARI_WORLD, s), m_zeroSurfaceData(this), m_zeroVolumeData(this), m_zeroLightData(this), m_instanceData(this)
 {
   s->objectCounts.worlds++;
 
@@ -28,7 +28,6 @@ World::World(OSPRayGlobalState *s) : Object(ANARI_WORLD, s)
 
 World::~World()
 {
-  cleanup();
   ospRelease(m_osprayWorld);
   ospRelease(m_osprayAmbientLight);
   deviceState()->objectCounts.worlds--;
@@ -53,14 +52,12 @@ bool World::getProperty(
 
 void World::commit()
 {
-  cleanup();
-
   m_zeroSurfaceData = getParamObject<ObjectArray>("surface");
   m_zeroVolumeData = getParamObject<ObjectArray>("volume");
   m_zeroLightData = getParamObject<ObjectArray>("light");
 
-  m_addZeroInstance = m_zeroSurfaceData || m_zeroVolumeData || m_zeroLightData;
-  if (m_addZeroInstance)
+  const bool addZeroInstance = m_zeroSurfaceData || m_zeroVolumeData || m_zeroLightData;
+  if (addZeroInstance)
     reportMessage(
         ANARI_SEVERITY_DEBUG, "anari_ospray::World will add zero instance");
 
@@ -96,16 +93,15 @@ void World::commit()
   m_instances.clear();
 
   if (m_instanceData) {
-    m_instanceData->removeAppendedHandles();
-    if (m_addZeroInstance)
-      m_instanceData->appendHandle(m_zeroInstance.ptr);
     std::for_each(m_instanceData->handlesBegin(),
         m_instanceData->handlesEnd(),
         [&](Object *o) {
           if (o && o->isValid())
             m_instances.push_back((Instance *)o);
         });
-  } else if (m_addZeroInstance)
+  }
+
+  if (addZeroInstance)
     m_instances.push_back(m_zeroInstance.ptr);
 
   m_objectUpdates.lastTLSBuild = 0;
@@ -230,14 +226,6 @@ void World::rebuildTLS()
   m_objectUpdates.lastTLSBuild = helium::newTimeStamp();
 
   m_osprayInstances = std::move(osprayInstances);
-}
-
-void World::cleanup()
-{
-  if (m_instanceData)
-    m_instanceData->removeCommitObserver(this);
-  if (m_zeroSurfaceData)
-    m_zeroSurfaceData->removeCommitObserver(this);
 }
 
 } // namespace anari_ospray

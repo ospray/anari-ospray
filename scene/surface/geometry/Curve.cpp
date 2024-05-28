@@ -7,13 +7,11 @@
 
 namespace anari_ospray {
 
-Curve::Curve(OSPRayGlobalState *s) : Geometry(s, "curve") {}
+Curve::Curve(OSPRayGlobalState *s) : Geometry(s, "curve"), m_index(this), m_vertexPosition(this), m_vertexRadius(this) {}
 
 void Curve::commit()
 {
   Geometry::commit();
-
-  cleanup();
 
   m_index = getParamObject<Array1D>("primitive.index");
   m_vertexPosition = getParamObject<Array1D>("vertex.position");
@@ -29,10 +27,6 @@ void Curve::commit()
         "missing required parameter 'vertex.position' on curve geometry");
     return;
   }
-
-  if (m_index)
-    m_index->addCommitObserver(this);
-  m_vertexPosition->addCommitObserver(this);
 
   const float *radius =
       m_vertexRadius ? m_vertexRadius->beginAs<float>() : nullptr;
@@ -142,14 +136,6 @@ void Curve::setTextureCoordinateAttribute(Attribute attr)
 
   ospCommit(og);
   m_texcoords = std::move(unpackedValues);
-}
-
-void Curve::cleanup()
-{
-  if (m_index)
-    m_index->removeCommitObserver(this);
-  if (m_vertexPosition)
-    m_vertexPosition->removeCommitObserver(this);
 }
 
 } // namespace anari_ospray

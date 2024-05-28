@@ -67,8 +67,6 @@ struct Array : public helium::BaseArray
   void freeAppMemory();
   void initManagedMemory();
 
-  void notifyObserver(BaseObject *) const override;
-
   virtual void makeOSPRayDataObject();
   void releaseOSPRayDataObject();
 

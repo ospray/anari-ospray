@@ -17,10 +17,8 @@ struct Quad : public Geometry
   void setTextureCoordinateAttribute(Attribute attr) override;
 
  private:
-  void cleanup();
-
-  helium::IntrusivePtr<Array1D> m_index;
-  helium::IntrusivePtr<Array1D> m_vertexPosition;
+  helium::CommitObserverPtr<Array1D> m_index;
+  helium::CommitObserverPtr<Array1D> m_vertexPosition;
   std::array<helium::IntrusivePtr<Array1D>, 5> m_vertexAttributes;
 
   std::vector<uint32_t> m_indices;

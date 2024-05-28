@@ -8,13 +8,11 @@
 
 namespace anari_ospray {
 
-Cylinder::Cylinder(OSPRayGlobalState *s) : Geometry(s, "curve") {}
+Cylinder::Cylinder(OSPRayGlobalState *s) : Geometry(s, "curve"), m_index(this), m_radius(this), m_vertexPosition(this) {}
 
 void Cylinder::commit()
 {
   Geometry::commit();
-
-  cleanup();
 
   m_index = getParamObject<Array1D>("primitive.index");
   m_radius = getParamObject<Array1D>("primitive.radius");
@@ -30,10 +28,6 @@ void Cylinder::commit()
         "missing required parameter 'vertex.position' on cylinder geometry");
     return;
   }
-
-  if (m_index)
-    m_index->addCommitObserver(this);
-  m_vertexPosition->addCommitObserver(this);
 
   const float *radius = m_radius ? m_radius->beginAs<float>() : nullptr;
   m_globalRadius = getParam<float>("radius", 1.f);
@@ -148,14 +142,6 @@ void Cylinder::setTextureCoordinateAttribute(Attribute attr)
 
   ospCommit(og);
   m_texcoords = std::move(unpackedValues);
-}
-
-void Cylinder::cleanup()
-{
-  if (m_index)
-    m_index->removeCommitObserver(this);
-  if (m_vertexPosition)
-    m_vertexPosition->removeCommitObserver(this);
 }
 
 } // namespace anari_ospray
