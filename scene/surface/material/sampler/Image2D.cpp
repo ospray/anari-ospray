@@ -6,7 +6,7 @@
 
 namespace anari_ospray {
 
-Image2D::Image2D(OSPRayGlobalState *s) : Sampler(s)
+Image2D::Image2D(OSPRayGlobalState *s) : Sampler(s), m_image(this)
 {
   m_osprayTexture = ospNewTexture("texture2d");
 }

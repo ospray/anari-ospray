@@ -16,11 +16,9 @@ struct Sphere : public Geometry
   void setTextureCoordinateAttribute(Attribute attr) override;
 
  private:
-  void cleanup();
-
-  helium::IntrusivePtr<Array1D> m_index;
-  helium::IntrusivePtr<Array1D> m_vertexPosition;
-  helium::IntrusivePtr<Array1D> m_vertexRadius;
+  helium::ChangeObserverPtr<Array1D> m_index;
+  helium::ChangeObserverPtr<Array1D> m_vertexPosition;
+  helium::ChangeObserverPtr<Array1D> m_vertexRadius;
   float m_globalRadius{0.f};
 
   std::vector<float2> m_texcoords;

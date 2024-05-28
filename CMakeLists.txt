@@ -34,7 +34,7 @@ include(cmake/cmake_project_commands.cmake)
 
 ## Dependencies ##
 
-find_package(anari 0.9.1 REQUIRED)
+find_package(anari 0.10.0 REQUIRED)
 find_package(ospray 3.1.0 REQUIRED)
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
 

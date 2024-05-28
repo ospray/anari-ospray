@@ -5,13 +5,11 @@
 
 namespace anari_ospray {
 
-HDRI::HDRI(OSPRayGlobalState *s) : Light(s, "hdri") {}
+HDRI::HDRI(OSPRayGlobalState *s) : Light(s, "hdri"), m_image(this) {}
 
 void HDRI::commit()
 {
   Light::commit();
-  if (m_image)
-    m_image->removeCommitObserver(this);
 
   auto up = getParam<float3>("up", float3(0, 0, 1));
   auto direction = getParam<float3>("direction", float3(1, 0, 0));
@@ -23,7 +21,6 @@ void HDRI::commit()
         ANARI_SEVERITY_WARNING, "no radiance data provided to HDRI light");
     return;
   }
-  m_image->addCommitObserver(this);
 
   auto ol = osprayLight();
   ospSetParam(ol, "visible", OSP_BOOL, &visible);

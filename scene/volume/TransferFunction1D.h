@@ -20,8 +20,8 @@ struct TransferFunction1DVolume : public Volume
 
  private:
   helium::IntrusivePtr<SpatialField> m_field;
-  helium::IntrusivePtr<Array1D> m_colorData;
-  helium::IntrusivePtr<Array1D> m_opacityData;
+  helium::ChangeObserverPtr<Array1D> m_colorData;
+  helium::ChangeObserverPtr<Array1D> m_opacityData;
 
   OSPTransferFunction m_osprayTF{nullptr};
 };

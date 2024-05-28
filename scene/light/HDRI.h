@@ -15,7 +15,7 @@ struct HDRI : public Light
   bool isValid() const override;
 
  private:
-  helium::IntrusivePtr<Array2D> m_image;
+  helium::ChangeObserverPtr<Array2D> m_image;
 };
 
 } // namespace anari_ospray

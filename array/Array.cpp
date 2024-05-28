@@ -132,7 +132,7 @@ void Array::unmap()
   }
   m_mapped = false;
   makeOSPRayDataObject();
-  notifyCommitObservers();
+  notifyChangeObservers();
 }
 
 bool Array::wasPrivatized() const
@@ -201,12 +201,6 @@ void Array::initManagedMemory()
     m_hostData.managed.mem = malloc(totalBytes);
     std::memset(data(), 0, totalBytes);
   }
-}
-
-void Array::notifyObserver(BaseObject *o) const
-{
-  o->markUpdated();
-  deviceState()->commitBufferAddObject(o);
 }
 
 void Array::makeOSPRayDataObject()

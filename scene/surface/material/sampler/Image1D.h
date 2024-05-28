@@ -18,7 +18,7 @@ struct Image1D : public Sampler
   Attribute inAttribute() const override;
 
  private:
-  helium::IntrusivePtr<Array1D> m_image;
+  helium::ChangeObserverPtr<Array1D> m_image;
   Attribute m_inAttribute{Attribute::NONE};
   bool m_linearFilter{true};
   std::vector<float4> m_unpackedColors;
