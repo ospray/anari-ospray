@@ -33,17 +33,17 @@ struct Group : public Object
 
   // Geometry //
 
-  helium::CommitObserverPtr<ObjectArray> m_surfaceData;
+  helium::ChangeObserverPtr<ObjectArray> m_surfaceData;
   std::vector<OSPGeometricModel> m_geometricModels;
 
   // Volume //
 
-  helium::CommitObserverPtr<ObjectArray> m_volumeData;
+  helium::ChangeObserverPtr<ObjectArray> m_volumeData;
   std::vector<OSPVolumetricModel> m_volumetricModels;
 
   // Light //
 
-  helium::CommitObserverPtr<ObjectArray> m_lightData;
+  helium::ChangeObserverPtr<ObjectArray> m_lightData;
   std::vector<OSPLight> m_lights;
 
   // BVH //

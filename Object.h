@@ -7,7 +7,7 @@
 #include "ospray_math.h"
 // helium
 #include "helium/BaseObject.h"
-#include "helium/utility/CommitObserverPtr.h"
+#include "helium/utility/ChangeObserverPtr.h"
 // std
 #include <string_view>
 

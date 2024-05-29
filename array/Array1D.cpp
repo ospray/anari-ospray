@@ -33,7 +33,7 @@ void Array1D::commit()
   }
 
   if (m_begin != oldBegin || m_end != oldEnd)
-    notifyCommitObservers();
+    notifyChangeObservers();
 }
 
 size_t Array1D::totalSize() const

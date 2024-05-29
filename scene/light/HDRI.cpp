@@ -11,7 +11,7 @@ void HDRI::commit()
 {
   Light::commit();
   if (m_image)
-    m_image->removeCommitObserver(this);
+    m_image->removeChangeObserver(this);
 
   auto up = getParam<float3>("up", float3(0, 0, 1));
   auto direction = getParam<float3>("direction", float3(1, 0, 0));
@@ -23,7 +23,7 @@ void HDRI::commit()
         ANARI_SEVERITY_WARNING, "no radiance data provided to HDRI light");
     return;
   }
-  m_image->addCommitObserver(this);
+  m_image->addChangeObserver(this);
 
   auto ol = osprayLight();
   ospSetParam(ol, "visible", OSP_BOOL, &visible);

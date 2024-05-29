@@ -19,9 +19,9 @@ struct TransferFunction1DVolume : public Volume
   bool isValid() const override;
 
  private:
-  helium::CommitObserverPtr<SpatialField> m_field;
-  helium::CommitObserverPtr<Array1D> m_colorData;
-  helium::CommitObserverPtr<Array1D> m_opacityData;
+  helium::ChangeObserverPtr<SpatialField> m_field;
+  helium::ChangeObserverPtr<Array1D> m_colorData;
+  helium::ChangeObserverPtr<Array1D> m_opacityData;
 
   OSPTransferFunction m_osprayTF{nullptr};
 };

@@ -109,9 +109,9 @@ void World::commit()
   m_objectUpdates.lastBLSCommitCheck = 0;
 
   if (m_instanceData)
-    m_instanceData->addCommitObserver(this);
+    m_instanceData->addChangeObserver(this);
   if (m_zeroSurfaceData)
-    m_zeroSurfaceData->addCommitObserver(this);
+    m_zeroSurfaceData->addChangeObserver(this);
 }
 
 const std::vector<Instance *> &World::instances() const

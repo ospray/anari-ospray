@@ -132,7 +132,7 @@ void Array::unmap()
   }
   m_mapped = false;
   makeOSPRayDataObject();
-  notifyCommitObservers();
+  notifyChangeObservers();
 }
 
 bool Array::wasPrivatized() const

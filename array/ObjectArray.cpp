@@ -59,7 +59,7 @@ void ObjectArray::commit()
   }
 
   if (m_begin != oldBegin || m_end != oldEnd)
-    notifyCommitObservers();
+    notifyChangeObservers();
 }
 
 size_t ObjectArray::totalSize() const
@@ -96,7 +96,7 @@ void ObjectArray::unmap()
   }
   m_mapped = false;
   updateInternalHandleArrays();
-  notifyCommitObservers();
+  notifyChangeObservers();
 }
 
 Object **ObjectArray::handlesBegin() const
