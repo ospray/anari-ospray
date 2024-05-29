@@ -31,8 +31,25 @@ void HDRI::commit()
   ospSetParam(ol, "up", OSP_VEC3F, &up);
   ospSetParam(ol, "direction", OSP_VEC3F, &direction);
   ospSetParam(ol, "intensity", OSP_FLOAT, &intensity);
+
+  OSPTexture ot = ospNewTexture("texture2d");
+  auto format = OSP_TEXTURE_RGBA32F;
+  ospSetParam(ot, "format", OSP_UINT, &format);
+  auto filter = OSP_TEXTURE_FILTER_LINEAR;
+  ospSetParam(ot, "filter", OSP_UINT, &filter);
+
+  auto unpackedColors = convertToColorArray(*m_image);
   auto id = m_image->osprayData();
-  ospSetParam(ol, "map", OSP_DATA, &id);
+  auto size = m_image->size();
+  auto d = ospNewSharedData2D(unpackedColors.data(), OSP_VEC4F, size.x, size.y);
+  ospSetParam(ot, "data", OSP_DATA, &d);
+  ospRelease(d);
+
+  ospCommit(ot);
+
+  ospSetParam(ol, "map", OSP_TEXTURE, &ot);
+  ospRelease(ot);
+
   ospCommit(ol);
 }
 
