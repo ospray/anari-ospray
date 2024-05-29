@@ -28,8 +28,17 @@ void HDRI::commit()
   ospSetParam(ol, "up", OSP_VEC3F, &up);
   ospSetParam(ol, "direction", OSP_VEC3F, &direction);
   ospSetParam(ol, "intensity", OSP_FLOAT, &intensity);
+
+  OSPTexture ot = ospNewTexture("texture2d");
+  auto format = OSP_TEXTURE_RGB32F;
+  ospSetParam(ot, "format", OSP_UINT, &format);
   auto id = m_image->osprayData();
-  ospSetParam(ol, "map", OSP_DATA, &id);
+  ospSetParam(ot, "data", OSP_DATA, &id);
+  ospCommit(ot);
+
+  ospSetParam(ol, "map", OSP_TEXTURE, &ot);
+  ospRelease(ot);
+
   ospCommit(ol);
 }
 
