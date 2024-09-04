@@ -6,6 +6,7 @@
 #include "Cone.h"
 #include "Curve.h"
 #include "Cylinder.h"
+#include "Isosurface.h"
 #include "Quad.h"
 #include "Sphere.h"
 #include "Triangle.h"
@@ -37,6 +38,8 @@ Geometry *Geometry::createInstance(
     return new Curve(s);
   else if (subtype == "cylinder")
     return new Cylinder(s);
+  else if (subtype == "isosurface")
+    return new Isosurface(s);
   else if (subtype == "quad")
     return new Quad(s);
   else if (subtype == "sphere")

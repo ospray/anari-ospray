@@ -79,6 +79,7 @@ project_sources(PRIVATE
   scene/surface/geometry/Curve.cpp
   scene/surface/geometry/Cylinder.cpp
   scene/surface/geometry/Geometry.cpp
+  scene/surface/geometry/Isosurface.cpp
   scene/surface/geometry/Quad.cpp
   scene/surface/geometry/Sphere.cpp
   scene/surface/geometry/Triangle.cpp

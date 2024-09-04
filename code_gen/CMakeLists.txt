@@ -12,6 +12,6 @@ anari_generate_queries(
 add_custom_target(
   generate_queries
   COMMAND clang-format -style=file -i OSPRayDeviceQueries.cpp
-  DEPENDS generate_ospray_device
+  DEPENDS generate_ospray
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
