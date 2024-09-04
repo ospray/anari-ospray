@@ -18,7 +18,7 @@ option(BUILD_TBB_FROM_SOURCE "Build TBB from source or use pre-built version?" O
 option(BUILD_EMBREE_FROM_SOURCE "Build Embree or use pre-built version?" OFF)
 
 ExternalProject_Add(ospray
-  URL https://github.com/ospray/ospray/archive/v3.1.0.zip
+  URL https://github.com/ospray/ospray/archive/v3.1.0.tar.gz
   SOURCE_SUBDIR scripts/superbuild
   CMAKE_ARGS
     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
@@ -32,11 +32,12 @@ ExternalProject_Add(ospray
 )
 
 ExternalProject_Add(anari
-  URL https://github.com/KhronosGroup/ANARI-SDK/archive/main.zip
+  URL https://github.com/KhronosGroup/ANARI-SDK/archive/main.tar.gz
   CMAKE_ARGS
     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
     -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
     -DBUILD_VIEWER=${BUILD_ANARI_SDK_VIEWER}
+    -DBUILD_HELIDE_DEVICE=OFF
 )
 
 ExternalProject_Add(anari-ospray

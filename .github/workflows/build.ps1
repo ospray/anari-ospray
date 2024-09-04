@@ -1,16 +1,24 @@
 ## Copyright 2020 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
+Param(
+  [string] $G = 'Ninja'
+)
+
 md build
 cd build
 
 cmake --version
 
-cmake -DCMAKE_INSTALL_PREFIX=install -L `
--G $args[0] `
--T $args[1] `
-../superbuild
+$exitCode = 0
 
-cmake --build . --config Release --target ALL_BUILD
+cmake -DCMAKE_INSTALL_PREFIX=install -L `
+-G $G `
+$args `
+../superbuild
+if ($LastExitCode) { $exitCode++ }
+
+cmake --build . --config Release
+if ($LastExitCode) { $exitCode++ }
 
 exit $LASTEXITCODE

@@ -6,5 +6,5 @@ mkdir build
 cd build
 
 cmake --version
-cmake -DCMAKE_INSTALL_PREFIX=install ../superbuild
+cmake -DCMAKE_INSTALL_PREFIX=install $@ ../superbuild
 cmake --build .

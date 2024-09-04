@@ -44,21 +44,12 @@ jobs:
       artifact-out: build-rocky8
       artifact-path: build/install
 
-  build-ubuntu18_04:
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@v1
-    with:
-      image: ubuntu:18.04
-      cmd: |
-        .github/workflows/build.sh -G ninja
-      artifact-out: build-ubuntu18_04
-      artifact-path: build/install
-
   build-ubuntu20_04:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       image: ubuntu:20.04
       cmd: |
-        .github/workflows/build.sh -G ninja
+        .github/workflows/build.sh -G Ninja
       artifact-out: build-ubuntu20_04
       artifact-path: build/install
 
@@ -67,7 +58,7 @@ jobs:
     with:
       image: ubuntu:22.04
       cmd: |
-        .github/workflows/build.sh -G ninja
+        .github/workflows/build.sh -G Ninja
       artifact-out: build-ubuntu22_04
       artifact-path: build/install
 
@@ -79,11 +70,22 @@ jobs:
       artifact-out: build-osx
       artifact-path: build/install
 
+  build-windows-clang:
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
+    secrets: inherit
+    with:
+      dpcpp-version: intel-llvm/nightly-2023-10-26-rk
+      cmd: |
+        $env:SYCL_BUNDLE_ROOT = $env:DPCPP_ROOT
+        .github\workflows\build.ps1 -DCMAKE_CXX_COMPILER=clang-cl -DCMAKE_C_COMPILER=clang-cl
+      artifact-out: build-windows
+      artifact-path: build/install
+
   build-windows-msvc15:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       cmd: |
-        .github\workflows\build.ps1 "Visual Studio 15 2017 Win64" "v141"
+        .github\workflows\build.ps1 -G "Visual Studio 15 2017 Win64"
       artifact-out: build-windows-msvc15
       artifact-path: build/install
 
@@ -91,7 +93,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       cmd: |
-        .github\workflows\build.ps1 "Visual Studio 17 2022" "v143"
+        .github\workflows\build.ps1 -G "Visual Studio 17 2022"
       artifact-out: build-windows-msvc17
       artifact-path: build/install
 
@@ -125,15 +127,6 @@ jobs:
       cmd: |
         .github/workflows/test.sh
       artifact-in: build-rocky8
-
-  test-ubuntu18_04:
-    needs: build-ubuntu18_04
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@v1
-    with:
-      image: ubuntu:18.04
-      cmd: |
-        .github/workflows/test.sh
-      artifact-in: build-ubuntu18_04
 
   test-ubuntu20_04:
     needs: build-ubuntu20_04
