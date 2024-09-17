@@ -13,11 +13,11 @@ void Isosurface::commit()
 {
   Geometry::commit();
 
-  m_field = getParamObject<SpatialField>("value");
+  m_field = getParamObject<SpatialField>("field");
 
   if (!m_field) {
     reportMessage(ANARI_SEVERITY_WARNING,
-        "no spatial field provided to issurface geometry");
+        "no spatial field provided to isosurface geometry");
     return;
   }
 
@@ -32,7 +32,7 @@ void Isosurface::commit()
     float isovalue;
     if (!getParam("isovalue", ANARI_FLOAT32, &isovalue)) {
       reportMessage(ANARI_SEVERITY_WARNING,
-          "missing required parameter 'isovalue' on issurface geometry");
+          "missing required parameter 'isovalue' on isosurface geometry");
       return;
     }
     ospSetParam(og, "isovalue", OSP_FLOAT, &isovalue);
