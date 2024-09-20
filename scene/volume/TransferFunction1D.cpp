@@ -21,7 +21,7 @@ void TransferFunction1DVolume::commit()
   m_field = getParamObject<SpatialField>("value");
   if (!m_field) {
     reportMessage(
-        ANARI_SEVERITY_WARNING, "no spatial field provided to scivis volume");
+        ANARI_SEVERITY_WARNING, "no spatial field provided to transfer function");
     return;
   }
 
@@ -30,7 +30,7 @@ void TransferFunction1DVolume::commit()
 
   if (!m_colorData) {
     reportMessage(
-        ANARI_SEVERITY_WARNING, "no color data provided to scivis volume");
+        ANARI_SEVERITY_WARNING, "no color data provided to transfer function");
     return;
   }
 

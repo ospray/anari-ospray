@@ -22,6 +22,12 @@ void HDRI::commit()
     return;
   }
 
+  if (m_image->elementType() != ANARI_FLOAT32_VEC3) {
+    reportMessage(
+        ANARI_SEVERITY_WARNING, "radiance data for HDRI light needs to be of format FLOAT32_VEC3");
+    return;
+  }
+
   auto ol = osprayLight();
   ospSetParam(ol, "visible", OSP_BOOL, &visible);
   ospSetParam(ol, "color", OSP_VEC3F, &color);

@@ -88,6 +88,7 @@ void Geometry::setColorAttribute(Attribute attr, OSPGeometricModel om)
       auto d = ospNewSharedData1D(
           unpackedValues.data(), OSP_VEC4F, unpackedValues.size());
       ospSetParam(om, "color", OSP_DATA, &d);
+      ospCommit(om);
       ospRelease(d);
     }
   }
