@@ -12,14 +12,12 @@ namespace anari_ospray {
 SpatialField::SpatialField(OSPRayGlobalState *s, const char *osptype)
     : Object(ANARI_SPATIAL_FIELD, s)
 {
-  s->objectCounts.spatialFields++;
   m_osprayVolume = ospNewVolume(osptype);
 }
 
 SpatialField::~SpatialField()
 {
   ospRelease(m_osprayVolume);
-  deviceState()->objectCounts.spatialFields--;
 }
 
 SpatialField *SpatialField::createInstance(

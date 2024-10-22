@@ -9,14 +9,12 @@ namespace anari_ospray {
 
 Volume::Volume(OSPRayGlobalState *s) : Object(ANARI_VOLUME, s)
 {
-  s->objectCounts.volumes++;
   m_osprayModel = ospNewVolumetricModel();
 }
 
 Volume::~Volume()
 {
   ospRelease(m_osprayModel);
-  deviceState()->objectCounts.volumes--;
 }
 
 Volume *Volume::createInstance(std::string_view subtype, OSPRayGlobalState *s)

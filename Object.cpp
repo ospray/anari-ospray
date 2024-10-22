@@ -45,14 +45,8 @@ OSPRayGlobalState *Object::deviceState() const
 UnknownObject::UnknownObject(ANARIDataType type, OSPRayGlobalState *s)
     : Object(type, s)
 {
-  s->objectCounts.unknown++;
   reportMessage(
       ANARI_SEVERITY_WARNING, "created unknown %s", anari::toString(type));
-}
-
-UnknownObject::~UnknownObject()
-{
-  deviceState()->objectCounts.unknown--;
 }
 
 bool UnknownObject::isValid() const

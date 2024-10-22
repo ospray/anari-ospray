@@ -33,7 +33,6 @@ struct Object : public helium::BaseObject
 struct UnknownObject : public Object
 {
   UnknownObject(ANARIDataType type, OSPRayGlobalState *s);
-  ~UnknownObject() override;
   bool isValid() const override;
 };
 

@@ -13,14 +13,12 @@ namespace anari_ospray {
 
 Light::Light(OSPRayGlobalState *s, const char *osptype) : Object(ANARI_LIGHT, s)
 {
-  s->objectCounts.lights++;
   m_osprayLight = ospNewLight(osptype);
 }
 
 Light::~Light()
 {
   ospRelease(m_osprayLight);
-  deviceState()->objectCounts.lights--;
 }
 
 Light *Light::createInstance(std::string_view subtype, OSPRayGlobalState *s)

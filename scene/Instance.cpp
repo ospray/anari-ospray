@@ -7,14 +7,12 @@ namespace anari_ospray {
 
 Instance::Instance(OSPRayGlobalState *s) : Object(ANARI_INSTANCE, s)
 {
-  s->objectCounts.instances++;
   m_osprayInstance = ospNewInstance();
 }
 
 Instance::~Instance()
 {
   ospRelease(m_osprayInstance);
-  deviceState()->objectCounts.instances--;
 }
 
 void Instance::commit()

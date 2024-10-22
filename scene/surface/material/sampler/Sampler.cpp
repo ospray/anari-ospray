@@ -8,15 +8,11 @@
 
 namespace anari_ospray {
 
-Sampler::Sampler(OSPRayGlobalState *s) : Object(ANARI_SAMPLER, s)
-{
-  s->objectCounts.samplers++;
-}
+Sampler::Sampler(OSPRayGlobalState *s) : Object(ANARI_SAMPLER, s) {}
 
 Sampler::~Sampler()
 {
   ospRelease(m_osprayTexture);
-  deviceState()->objectCounts.samplers--;
 }
 
 Sampler *Sampler::createInstance(std::string_view subtype, OSPRayGlobalState *s)

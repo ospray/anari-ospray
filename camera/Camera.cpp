@@ -11,7 +11,6 @@ namespace anari_ospray {
 Camera::Camera(OSPRayGlobalState *s, const char *osptype)
     : Object(ANARI_CAMERA, s)
 {
-  s->objectCounts.cameras++;
   m_osprayCamera = ospNewCamera(osptype);
   ospCommit(m_osprayCamera);
 }
@@ -19,7 +18,6 @@ Camera::Camera(OSPRayGlobalState *s, const char *osptype)
 Camera::~Camera()
 {
   ospRelease(m_osprayCamera);
-  deviceState()->objectCounts.cameras--;
 }
 
 Camera *Camera::createInstance(std::string_view type, OSPRayGlobalState *s)

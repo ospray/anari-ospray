@@ -11,14 +11,12 @@ namespace anari_ospray {
 Material::Material(OSPRayGlobalState *s, const char *osptype)
     : Object(ANARI_MATERIAL, s)
 {
-  s->objectCounts.materials++;
   m_osprayMaterial = ospNewMaterial(osptype);
 }
 
 Material::~Material()
 {
   ospRelease(m_osprayMaterial);
-  deviceState()->objectCounts.materials--;
 }
 
 Material *Material::createInstance(

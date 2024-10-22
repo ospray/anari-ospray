@@ -430,42 +430,6 @@ OSPRayDevice::~OSPRayDevice()
 
   ospShutdown();
 
-  // NOTE: These object leak warnings are not required to be done by
-  //       implementations as the debug layer in the SDK is far more
-  //       comprehensive and designed for detecting bugs like this. However
-  //       these simple checks are very straightforward to implement and do not
-  //       really add substantial code complexity, so they are provided out of
-  //       convenience.
-
-  auto reportLeaks = [&](size_t &count, const char *handleType) {
-    if (count != 0) {
-      reportMessage(ANARI_SEVERITY_WARNING,
-          "detected %zu leaked %s objects",
-          count,
-          handleType);
-    }
-  };
-
-  reportLeaks(state.objectCounts.frames, "ANARIFrame");
-  reportLeaks(state.objectCounts.cameras, "ANARICamera");
-  reportLeaks(state.objectCounts.renderers, "ANARIRenderer");
-  reportLeaks(state.objectCounts.worlds, "ANARIWorld");
-  reportLeaks(state.objectCounts.instances, "ANARIInstance");
-  reportLeaks(state.objectCounts.groups, "ANARIGroup");
-  reportLeaks(state.objectCounts.lights, "ANARILight");
-  reportLeaks(state.objectCounts.surfaces, "ANARISurface");
-  reportLeaks(state.objectCounts.geometries, "ANARIGeometry");
-  reportLeaks(state.objectCounts.materials, "ANARIMaterial");
-  reportLeaks(state.objectCounts.samplers, "ANARISampler");
-  reportLeaks(state.objectCounts.volumes, "ANARIVolume");
-  reportLeaks(state.objectCounts.spatialFields, "ANARISpatialField");
-  reportLeaks(state.objectCounts.arrays, "ANARIArray");
-
-  if (state.objectCounts.unknown != 0) {
-    reportMessage(ANARI_SEVERITY_WARNING,
-        "detected %zu leaked ANARIObject objects created by unknown subtypes",
-        state.objectCounts.unknown);
-  }
 }
 
 void OSPRayDevice::initDevice()

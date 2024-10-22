@@ -7,13 +7,11 @@ namespace anari_ospray {
 
 Surface::Surface(OSPRayGlobalState *s) : Object(ANARI_SURFACE, s)
 {
-  s->objectCounts.surfaces++;
   m_osprayModel = ospNewGeometricModel();
 }
 
 Surface::~Surface()
 {
-  deviceState()->objectCounts.surfaces--;
   ospRelease(m_osprayModel);
 }
 

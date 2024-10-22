@@ -37,8 +37,6 @@ Array::Array(ANARIDataType type,
     const ArrayMemoryDescriptor &d)
     : helium::BaseArray(type, state), m_elementType(d.elementType)
 {
-  state->objectCounts.arrays++;
-
   if (d.appMemory) {
     m_ownership =
         d.deleter ? ArrayDataOwnership::CAPTURED : ArrayDataOwnership::SHARED;
@@ -63,7 +61,6 @@ Array::~Array()
 {
   freeAppMemory();
   releaseOSPRayDataObject();
-  deviceState()->objectCounts.arrays--;
 }
 
 ANARIDataType Array::elementType() const

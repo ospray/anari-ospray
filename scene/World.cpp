@@ -12,8 +12,6 @@ World::World(OSPRayGlobalState *s)
       m_zeroLightData(this),
       m_instanceData(this)
 {
-  s->objectCounts.worlds++;
-
   m_osprayAmbientLight = ospNewLight("ambient");
   ospSetBool(m_osprayAmbientLight, "visible", false);
   setAmbientLightValues(float3(1, 1, 1), 0.25f);
@@ -35,7 +33,6 @@ World::~World()
 {
   ospRelease(m_osprayWorld);
   ospRelease(m_osprayAmbientLight);
-  deviceState()->objectCounts.worlds--;
 }
 
 bool World::getProperty(

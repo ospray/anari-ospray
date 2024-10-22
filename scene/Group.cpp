@@ -13,7 +13,6 @@ Group::Group(OSPRayGlobalState *s)
       m_volumeData(this),
       m_lightData(this)
 {
-  s->objectCounts.groups++;
   m_osprayGroup = ospNewGroup();
 }
 
@@ -22,7 +21,6 @@ Group::~Group()
   cleanup();
   ospRelease(m_osprayGroup);
   m_osprayGroup = nullptr;
-  deviceState()->objectCounts.groups--;
 }
 
 bool Group::getProperty(

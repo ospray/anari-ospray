@@ -19,14 +19,12 @@ namespace anari_ospray {
 Geometry::Geometry(OSPRayGlobalState *s, const char *osptype)
     : Object(ANARI_GEOMETRY, s)
 {
-  s->objectCounts.geometries++;
   m_osprayGeometry = ospNewGeometry(osptype);
 }
 
 Geometry::~Geometry()
 {
   ospRelease(m_osprayGeometry);
-  deviceState()->objectCounts.geometries--;
 }
 
 Geometry *Geometry::createInstance(

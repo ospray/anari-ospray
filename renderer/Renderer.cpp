@@ -12,14 +12,12 @@ namespace anari_ospray {
 Renderer::Renderer(OSPRayGlobalState *s, const char *osptype)
     : Object(ANARI_RENDERER, s)
 {
-  s->objectCounts.renderers++;
   m_osprayRenderer = ospNewRenderer(osptype);
 }
 
 Renderer::~Renderer()
 {
   ospRelease(m_osprayRenderer);
-  deviceState()->objectCounts.renderers--;
 }
 
 void Renderer::commit()

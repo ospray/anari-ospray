@@ -20,16 +20,12 @@ OSPFrameBufferFormat osprayFormatFromANARI(anari::DataType a)
   }
 }
 
-Frame::Frame(OSPRayGlobalState *s) : helium::BaseFrame(s)
-{
-  s->objectCounts.frames++;
-}
+Frame::Frame(OSPRayGlobalState *s) : helium::BaseFrame(s) {}
 
 Frame::~Frame()
 {
   wait();
   ospRelease(m_osprayFrameBuffer);
-  deviceState()->objectCounts.frames--;
 }
 
 bool Frame::isValid() const
