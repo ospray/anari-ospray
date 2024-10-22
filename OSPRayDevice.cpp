@@ -428,8 +428,14 @@ OSPRayDevice::~OSPRayDevice()
 
   reportMessage(ANARI_SEVERITY_DEBUG, "destroying ospray device (%p)", this);
 
-  ospShutdown();
+  if (!state.distributed) // XXX
+    ospShutdown();
+}
 
+OSPDevice OSPRayDevice::createDevice() const
+{
+  ospLoadModule("cpu");
+  return ospNewDevice("cpu");
 }
 
 void OSPRayDevice::initDevice()
@@ -441,8 +447,7 @@ void OSPRayDevice::initDevice()
 
   auto &state = *deviceState();
 
-  ospLoadModule("cpu");
-  state.osprayDevice = ospNewDevice("cpu");
+  state.osprayDevice = createDevice();
 
   ospDeviceSetErrorCallback(
       state.osprayDevice,
@@ -511,6 +516,16 @@ OSPRayDevice::OSPRayDeviceScope::OSPRayDeviceScope(OSPRayDevice *d)
 OSPRayDevice::OSPRayDeviceScope::~OSPRayDeviceScope()
 {
   m_device->revertOSPRayDevice();
+}
+
+OSPDevice OSPRayDistributedDevice::createDevice() const
+{
+  deviceState()->distributed = true;
+  const auto *str = getenv("OSPRAY_MPI_DISTRIBUTED_GPU");
+  const auto OSPRAY_MPI_DISTRIBUTED_GPU = str ? atoi(str) : 0;
+  ospLoadModule(OSPRAY_MPI_DISTRIBUTED_GPU ? "mpi_distributed_gpu"
+                                           : "mpi_distributed_cpu");
+  return ospNewDevice("mpiDistributed");
 }
 
 } // namespace anari_ospray

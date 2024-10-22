@@ -31,6 +31,7 @@ struct OSPRayGlobalState : public helium::BaseGlobalDeviceState
 
   bool allowInvalidSurfaceMaterials{true};
   float4 invalidMaterialColor{1.f, 0.f, 1.f, 1.f};
+  bool distributed{false};
 
   // Helper methods //
 

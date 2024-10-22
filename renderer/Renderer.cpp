@@ -41,9 +41,11 @@ void Renderer::commit()
 Renderer *Renderer::createInstance(
     std::string_view subtype, OSPRayGlobalState *s)
 {
-  if (subtype == "pathtracer" || subtype == "default")
+  if (subtype == "pathtracer" || (!s->distributed && subtype == "default"))
     return new Pathtracer(s);
   else if (subtype == "scivis")
+    return new SciVis(s);
+  else if (subtype == "mpiRaycast" || (s->distributed && subtype == "default"))
     return new SciVis(s);
   else if (subtype == "debug")
     return new Debug(s);

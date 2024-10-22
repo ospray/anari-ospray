@@ -25,8 +25,11 @@ OSPRayLibrary::OSPRayLibrary(
     : anari::LibraryImpl(lib, defaultStatusCB, statusCBPtr)
 {}
 
-ANARIDevice OSPRayLibrary::newDevice(const char * /*subtype*/)
+ANARIDevice OSPRayLibrary::newDevice(const char *subtype)
 {
+  if (std::string_view(subtype) == "distributed")
+    return (ANARIDevice) new OSPRayDistributedDevice(this_library());
+
   return (ANARIDevice) new OSPRayDevice(this_library());
 }
 

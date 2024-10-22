@@ -154,6 +154,7 @@ struct OSPRayDevice : public helium::BaseDevice
   OSPRayDevice(ANARILibrary);
   ~OSPRayDevice() override;
 
+  virtual OSPDevice createDevice() const;
   void initDevice();
 
   void deviceCommitParameters() override;
@@ -161,7 +162,7 @@ struct OSPRayDevice : public helium::BaseDevice
   void setOSPRayDevice();
   void revertOSPRayDevice();
 
- private:
+ protected:
   struct OSPRayDeviceScope
   {
     OSPRayDeviceScope(OSPRayDevice *d);
@@ -175,6 +176,12 @@ struct OSPRayDevice : public helium::BaseDevice
 
   bool m_initialized{false};
   OSPDevice m_appDevice{nullptr};
+};
+
+struct OSPRayDistributedDevice : public OSPRayDevice
+{
+  OSPRayDistributedDevice(ANARILibrary l) : OSPRayDevice(l) {}
+  OSPDevice createDevice() const override;
 };
 
 } // namespace anari_ospray
