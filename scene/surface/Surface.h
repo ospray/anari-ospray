@@ -24,7 +24,7 @@ struct Surface : public Object
   OSPGeometricModel osprayModel() const;
 
  private:
-  helium::IntrusivePtr<Geometry> m_geometry;
+  helium::ChangeObserverPtr<Geometry> m_geometry;
   helium::IntrusivePtr<Material> m_material;
 
   OSPGeometricModel m_osprayModel{nullptr};

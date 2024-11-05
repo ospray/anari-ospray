@@ -13,6 +13,8 @@ void Isosurface::commit()
 {
   Geometry::commit();
 
+  m_isovalueValid = false;
+
   m_field = getParamObject<SpatialField>("field");
 
   if (!m_field) {
@@ -25,7 +27,8 @@ void Isosurface::commit()
 
   auto og = osprayGeometry();
 
-  if (m_isovalue) {
+  if (m_isovalue && m_isovalue->size() > 0
+      && m_isovalue->elementType() == ANARI_FLOAT32) {
     auto iv = m_isovalue->osprayData();
     ospSetParam(og, "isovalue", OSP_DATA, &iv);
   } else {
@@ -38,6 +41,8 @@ void Isosurface::commit()
     ospSetParam(og, "isovalue", OSP_FLOAT, &isovalue);
   }
 
+  m_isovalueValid = true;
+
   auto ov = m_field->osprayVolume();
   ospSetParam(og, "volume", OSP_VOLUME, &ov);
 
@@ -46,7 +51,7 @@ void Isosurface::commit()
 
 bool Isosurface::isValid() const
 {
-  return m_field && m_field->isValid();
+  return m_field && m_field->isValid() && m_isovalueValid;
 }
 
 } // namespace anari_ospray

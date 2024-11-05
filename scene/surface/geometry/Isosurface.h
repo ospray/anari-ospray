@@ -19,6 +19,8 @@ struct Isosurface : public Geometry
  private:
   helium::IntrusivePtr<SpatialField> m_field;
   helium::ChangeObserverPtr<Array1D> m_isovalue;
+
+  bool m_isovalueValid{false};
 };
 
 } // namespace anari_ospray

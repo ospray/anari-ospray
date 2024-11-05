@@ -5,7 +5,8 @@
 
 namespace anari_ospray {
 
-Surface::Surface(OSPRayGlobalState *s) : Object(ANARI_SURFACE, s)
+Surface::Surface(OSPRayGlobalState *s)
+    : Object(ANARI_SURFACE, s), m_geometry(this)
 {
   m_osprayModel = ospNewGeometricModel();
 }
@@ -25,7 +26,7 @@ void Surface::commit()
     return;
   }
 
-  if (!m_geometry) {
+  if (!m_geometry || !m_geometry->isValid()) {
     reportMessage(ANARI_SEVERITY_WARNING, "missing 'geometry' on ANARISurface");
     return;
   }
@@ -44,7 +45,7 @@ void Surface::commit()
 
 const Geometry *Surface::geometry() const
 {
-  return m_geometry.ptr;
+  return m_geometry.get();
 }
 
 const Material *Surface::material() const
