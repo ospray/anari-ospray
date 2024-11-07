@@ -9,9 +9,11 @@ Matte::Matte(OSPRayGlobalState *s) : Material(s, "obj") {}
 
 void Matte::commit()
 {
-  m_color = getParam<float3>("color", float3(1.f));
+  m_color = getParam<float3>("color", float3(0.8f));
   m_colorAttribute = attributeFromString(getParamString("color", "none"));
   m_colorSampler = getParamObject<Sampler>("color");
+
+  auto opacity = getParam<float>("opacity", 1.f);
 
   OSPTexture ot = nullptr;
   if (m_colorSampler && m_colorSampler->isValid()) {
@@ -26,6 +28,9 @@ void Matte::commit()
     ospSetParam(om, "map_kd", OSP_TEXTURE, &ot);
   else
     ospRemoveParam(om, "map_kd");
+
+  ospSetParam(om, "d", OSP_FLOAT, &opacity);
+
   ospCommit(om);
 }
 
