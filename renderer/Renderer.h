@@ -22,10 +22,18 @@ struct Renderer : public Object
   float ambientRadiance() const;
   float3 ambientColor() const;
 
+  bool denoiserEnabled() const;
+  bool denoiseAlpha() const;
+  std::string_view denoiseQuality() const;
+
  private:
   float4 m_bgColor{float3(0.f), 1.f};
   float m_ambientRadiance{0.f};
   float3 m_ambientColor{1.f, 1.f, 1.f};
+  bool m_denoiseEnabled{false};
+  bool m_denoiseAlpha{false};
+  std::string_view m_denoiseQuality{"medium"};
+
 
   OSPRenderer m_osprayRenderer{nullptr};
 };

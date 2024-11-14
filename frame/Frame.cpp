@@ -70,6 +70,32 @@ void Frame::commit()
       osprayFormatFromANARI(m_colorType),
       OSP_FB_COLOR | OSP_FB_DEPTH | OSP_FB_ACCUM);
 
+  if(m_renderer->denoiserEnabled()) {
+    auto denoiser = ospNewImageOperation("denoiser");
+    auto denoiseQuality = m_renderer->denoiseQuality();
+    auto denoiseAlpha = m_renderer->denoiseAlpha();
+
+    int quality{OSP_DENOISER_QUALITY_MEDIUM};
+
+    if(denoiseQuality == "low") quality = OSP_DENOISER_QUALITY_LOW;
+    else if(denoiseQuality == "medium") quality = OSP_DENOISER_QUALITY_MEDIUM;
+    else if(denoiseQuality == "high") quality = OSP_DENOISER_QUALITY_HIGH;
+    else {
+      reportMessage(
+        ANARI_SEVERITY_WARNING, 
+        "Invalid value for denoiseQuality: '%s'. Acceptable values are: 'low', 'medium', 'high'.", 
+        denoiseQuality);
+    }
+    
+    ospSetParam(denoiser, "quality", OSP_UINT, &quality);
+    ospSetParam(denoiser, "denoiseAlpha", OSP_BOOL, &denoiseAlpha);
+    ospCommit(denoiser);
+
+    OSPData data = ospNewSharedData1D(&denoiser, OSP_IMAGE_OPERATION, 1);
+    ospSetObject(m_osprayFrameBuffer, "imageOperation", data);
+    ospCommit(m_osprayFrameBuffer);
+  } 
+
   m_frameChanged = true;
 }
 
