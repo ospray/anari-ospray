@@ -26,6 +26,7 @@ Frame::~Frame()
 {
   wait();
   ospRelease(m_osprayFrameBuffer);
+  ospRelease(m_osprayDenoiser);
 }
 
 bool Frame::isValid() const
@@ -65,12 +66,31 @@ void Frame::commit()
 
   m_frameData.size = getParam<uint2>("size", uint2(10));
 
+  initFB(m_renderer->denoise());
+}
+
+void Frame::initFB(const bool denoising)
+{
+  m_denoising = denoising;
+  auto flags = OSP_FB_COLOR | OSP_FB_DEPTH | OSP_FB_ACCUM;
+  if (m_denoising)
+    flags |= OSP_FB_ALBEDO | OSP_FB_NORMAL;
+
   m_osprayFrameBuffer = ospNewFrameBuffer(m_frameData.size.x,
       m_frameData.size.y,
       osprayFormatFromANARI(m_colorType),
-      OSP_FB_COLOR | OSP_FB_DEPTH | OSP_FB_ACCUM);
+      flags);
 
-  m_frameChanged = true;
+  if (m_denoising) {
+    if (!m_osprayDenoiser)
+      m_osprayDenoiser = ospNewImageOperation("denoiser");
+
+    OSPData data =
+        ospNewSharedData1D(&m_osprayDenoiser, OSP_IMAGE_OPERATION, 1);
+    ospSetObject(m_osprayFrameBuffer, "imageOperation", data);
+    ospCommit(m_osprayFrameBuffer);
+    ospRelease(data);
+  }
 }
 
 bool Frame::getProperty(
@@ -94,6 +114,17 @@ void Frame::renderFrame()
   auto start = std::chrono::steady_clock::now();
 
   state->commitBufferFlush();
+
+  if (m_denoising != m_renderer->denoise())
+    initFB(!m_denoising); // toggle denoiser
+
+  if (m_denoising) {
+    auto quality = m_renderer->denoiseQuality();
+    ospSetParam(m_osprayDenoiser, "quality", OSP_UINT, &quality);
+    bool denoiseAlpha = m_renderer->denoiseAlpha();
+    ospSetParam(m_osprayDenoiser, "denoiseAlpha", OSP_BOOL, &denoiseAlpha);
+    ospCommit(m_osprayDenoiser);
+  }
 
   if (!isValid()) {
     reportMessage(

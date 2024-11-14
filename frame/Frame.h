@@ -44,6 +44,7 @@ struct Frame : public helium::BaseFrame
   void wait() const;
 
  private:
+  void initFB(const bool denoising);
   bool m_valid{false};
 
   struct FrameData
@@ -61,7 +62,6 @@ struct Frame : public helium::BaseFrame
 
   mutable float m_duration{0.f};
 
-  bool m_frameChanged{false};
   helium::TimeStamp m_cameraLastChanged{0};
   helium::TimeStamp m_rendererLastChanged{0};
   helium::TimeStamp m_worldLastChanged{0};
@@ -70,6 +70,8 @@ struct Frame : public helium::BaseFrame
 
   OSPFrameBuffer m_osprayFrameBuffer{nullptr};
   mutable OSPFuture m_osprayFuture{nullptr};
+  OSPImageOperation m_osprayDenoiser{nullptr};
+  bool m_denoising{false};
 
   const void *m_osprayColorBuffer{nullptr};
   const void *m_osprayDepthBuffer{nullptr};

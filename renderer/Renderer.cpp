@@ -25,6 +25,9 @@ void Renderer::commit()
   m_bgColor = getParam<float4>("background", float4(float3(0.f), 1.f));
   m_ambientRadiance = getParam<float>("ambientRadiance", 0.f);
   m_ambientColor = getParam<float3>("ambientColor", float3(1, 1, 1));
+  m_denoiseEnabled = getParam<bool>("denoise", false);
+  m_denoiseAlpha = getParam<bool>("denoiseAlpha", false);
+  auto denoiseQuality = getParamString("denoiseQuality", "medium");
   auto pixelSamples = getParam<int>("pixelSamples", 1);
   auto maxPathLength = getParam<int>("maxPathLength", 20);
   auto minContribution = getParam<float>("minContribution", 0.001f);
@@ -36,6 +39,24 @@ void Renderer::commit()
   ospSetInt(r, "maxPathLength", maxPathLength);
   ospSetFloat(r, "minContribution", minContribution);
   ospSetFloat(r, "varianceThreshold", varianceThreshold);
+
+  if (denoiseQuality == "low")
+    m_denoiseQuality = OSP_DENOISER_QUALITY_LOW;
+  else if (denoiseQuality == "high")
+    m_denoiseQuality = OSP_DENOISER_QUALITY_HIGH;
+  else {
+    m_denoiseQuality = OSP_DENOISER_QUALITY_MEDIUM;
+    if (denoiseQuality != "medium")
+      reportMessage(ANARI_SEVERITY_WARNING,
+          "Invalid value for denoiseQuality: '%s'. Acceptable values are: 'low', 'medium', 'high'.",
+          denoiseQuality);
+  }
+
+  if (m_denoiseEnabled && ospLoadModule("denoiser") != OSP_NO_ERROR) {
+    m_denoiseEnabled = false;
+    reportMessage(
+        ANARI_SEVERITY_WARNING, "denoiser requested but not available");
+  }
 }
 
 Renderer *Renderer::createInstance(
@@ -66,6 +87,21 @@ float Renderer::ambientRadiance() const
 float3 Renderer::ambientColor() const
 {
   return m_ambientColor;
+}
+
+bool Renderer::denoise() const
+{
+  return m_denoiseEnabled;
+}
+
+bool Renderer::denoiseAlpha() const
+{
+  return m_denoiseAlpha;
+}
+
+OSPDenoiserQuality Renderer::denoiseQuality() const
+{
+  return m_denoiseQuality;
 }
 
 } // namespace anari_ospray

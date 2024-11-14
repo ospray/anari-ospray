@@ -22,10 +22,17 @@ struct Renderer : public Object
   float ambientRadiance() const;
   float3 ambientColor() const;
 
+  bool denoise() const;
+  bool denoiseAlpha() const;
+  OSPDenoiserQuality denoiseQuality() const;
+
  private:
   float4 m_bgColor{float3(0.f), 1.f};
   float m_ambientRadiance{0.f};
   float3 m_ambientColor{1.f, 1.f, 1.f};
+  bool m_denoiseEnabled{false};
+  bool m_denoiseAlpha{false};
+  OSPDenoiserQuality m_denoiseQuality{OSP_DENOISER_QUALITY_MEDIUM};
 
   OSPRenderer m_osprayRenderer{nullptr};
 };
