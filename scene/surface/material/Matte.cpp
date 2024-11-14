@@ -9,16 +9,11 @@ Matte::Matte(OSPRayGlobalState *s) : Material(s, "obj") {}
 
 void Matte::commit()
 {
-  m_color = getParam<float3>("color", float3(1.f));
+  m_color = getParam<float3>("color", float3(0.8f));
   m_colorAttribute = attributeFromString(getParamString("color", "none"));
   m_colorSampler = getParamObject<Sampler>("color");
 
   auto opacity = getParam<float>("opacity", 1.f);
-  auto specular = getParam<float>("specular", 0.f);
-  auto specularColor = getParam<float3>("specularColor", float3(1.f));
-  float specAdjust = 2.0f / (2.0f + specular);
-  float3 specularf = { specularColor[0] * specAdjust, specularColor[1] * specAdjust,
-        specularColor[2] * specAdjust };
 
   OSPTexture ot = nullptr;
   if (m_colorSampler && m_colorSampler->isValid()) {
@@ -34,8 +29,6 @@ void Matte::commit()
   else
     ospRemoveParam(om, "map_kd");
 
-  ospSetParam(om, "ks", OSP_VEC3F, &specularf);
-  ospSetParam(om, "ns", OSP_FLOAT, &specular);
   ospSetParam(om, "d", OSP_FLOAT, &opacity);
 
   ospCommit(om);
