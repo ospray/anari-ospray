@@ -46,13 +46,13 @@ void AMRField::commit()
   if (m_block_data->elementType() != ANARI_ARRAY3D) {
     reportMessage(ANARI_SEVERITY_WARNING,
         "'block.data' on 'amr' field isn't ANARIArray3D");
-  }
 
-  if (m_block_data->elementType() == ANARI_ARRAY1D) {
-    reportMessage(ANARI_SEVERITY_WARNING,
-        "allowing 'block.data' to be ANARIArray1D on 'amr' field");
-  } else {
-    return;
+    if (m_block_data->elementType() == ANARI_ARRAY1D) {
+      reportMessage(ANARI_SEVERITY_WARNING,
+          "allowing 'block.data' to be ANARIArray1D on 'amr' field");
+    } else {
+      return;
+    }
   }
 
   auto origin = getParam<float3>("origin", float3(0.f));
