@@ -34,13 +34,9 @@ include(cmake/cmake_project_commands.cmake)
 
 ## Dependencies ##
 
-find_package(anari 0.11.0 REQUIRED)
+find_package(anari 0.13.0 REQUIRED)
 find_package(ospray 3.2.0 REQUIRED)
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
-
-## Code generation ##
-
-add_subdirectory(code_gen)
 
 ## Core device target ##
 
@@ -48,7 +44,6 @@ project_add_library(SHARED)
 
 project_sources(PRIVATE
   OSPRayDevice.cpp
-  code_gen/OSPRayDeviceQueries.cpp
   OSPRayGlobalState.cpp
   OSPRayLibrary.cpp
   Object.cpp
@@ -95,6 +90,13 @@ project_sources(PRIVATE
   scene/volume/spatial_field/SpatialField.cpp
   scene/volume/spatial_field/StructuredRegularField.cpp
   scene/volume/spatial_field/UnstructuredField.cpp
+)
+
+anari_generate_queries(
+  DEVICE_TARGET ${PROJECT_NAME}
+  CPP_NAMESPACE anari_ospray
+  JSON_DEFINITIONS_FILE ${CMAKE_CURRENT_SOURCE_DIR}/code_gen/ospray_device.json
+  JSON_ROOT_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/code_gen
 )
 
 include(GenerateExportHeader)
