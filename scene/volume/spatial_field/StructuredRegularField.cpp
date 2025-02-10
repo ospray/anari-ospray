@@ -11,21 +11,24 @@ StructuredRegularField::StructuredRegularField(OSPRayGlobalState *d)
     : SpatialField(d, "structuredRegular")
 {}
 
-void StructuredRegularField::commit()
+void StructuredRegularField::commitParameters()
 {
   m_data = getParamObject<Array3D>("data");
+  m_origin = getParam<float3>("origin", float3(0.f));
+  m_spacing = getParam<float3>("spacing", float3(1.f));
+}
+
+void StructuredRegularField::finalize()
+{
   if (!m_data) {
     reportMessage(ANARI_SEVERITY_WARNING,
         "missing required parameter 'data' on 'structuredRegular' field");
     return;
   }
 
-  auto origin = getParam<float3>("origin", float3(0.f));
-  auto spacing = getParam<float3>("spacing", float3(1.f));
-
   auto ov = osprayVolume();
-  ospSetParam(ov, "gridOrigin", OSP_VEC3F, &origin);
-  ospSetParam(ov, "gridSpacing", OSP_VEC3F, &spacing);
+  ospSetParam(ov, "gridOrigin", OSP_VEC3F, &m_origin);
+  ospSetParam(ov, "gridSpacing", OSP_VEC3F, &m_spacing);
   auto od = m_data->osprayData();
   ospSetParam(ov, "data", OSP_DATA, &od);
   auto filter = OSP_VOLUME_FILTER_LINEAR;

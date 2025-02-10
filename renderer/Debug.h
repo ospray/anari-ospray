@@ -10,7 +10,11 @@ namespace anari_ospray {
 struct Debug : public Renderer
 {
   Debug(OSPRayGlobalState *s);
-  virtual void commit() override;
+  virtual void commitParameters() override;
+  virtual void finalize() override;
+
+ private:
+  std::string m_method;
 };
 
 } // namespace anari_ospray

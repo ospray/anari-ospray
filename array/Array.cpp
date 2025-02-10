@@ -98,17 +98,6 @@ size_t Array::totalCapacity() const
   return totalSize();
 }
 
-bool Array::getProperty(
-    const std::string_view &name, ANARIDataType type, void *ptr, uint32_t flags)
-{
-  return 0;
-}
-
-void Array::commit()
-{
-  // no-op
-}
-
 void *Array::map()
 {
   if (m_mapped) {
@@ -132,9 +121,35 @@ void Array::unmap()
   notifyChangeObservers();
 }
 
+bool Array::isMapped() const
+{
+  return m_mapped;
+}
+
 bool Array::wasPrivatized() const
 {
   return m_privatized;
+}
+
+void Array::markDataModified()
+{
+  m_lastDataModified = helium::newTimeStamp();
+}
+
+bool Array::getProperty(
+    const std::string_view &name, ANARIDataType type, void *ptr, uint32_t flags)
+{
+  return 0;
+}
+
+void Array::commitParameters()
+{
+  // no-op
+}
+
+void Array::finalize()
+{
+  // no-op
 }
 
 OSPData Array::osprayData()

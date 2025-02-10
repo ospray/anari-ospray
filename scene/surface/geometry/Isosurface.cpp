@@ -6,39 +6,38 @@
 namespace anari_ospray {
 
 Isosurface::Isosurface(OSPRayGlobalState *s)
-    : Geometry(s, "isosurface"), m_isovalue(this)
+    : Geometry(s, "isosurface"), m_isovalueArray(this)
 {}
 
-void Isosurface::commit()
+void Isosurface::commitParameters()
 {
-  Geometry::commit();
-
-  m_isovalueValid = false;
-
+  Geometry::commitParameters();
   m_field = getParamObject<SpatialField>("field");
+  m_isovalueArray = getParamObject<Array1D>("isovalue");
+  m_isovalueSet = getParam("isovalue", ANARI_FLOAT32, &m_isovalue);
+}
 
+void Isosurface::finalize()
+{
   if (!m_field) {
     reportMessage(ANARI_SEVERITY_WARNING,
         "no spatial field provided to isosurface geometry");
     return;
   }
 
-  m_isovalue = getParamObject<Array1D>("isovalue");
-
   auto og = osprayGeometry();
 
-  if (m_isovalue && m_isovalue->size() > 0
-      && m_isovalue->elementType() == ANARI_FLOAT32) {
-    auto iv = m_isovalue->osprayData();
+  if (m_isovalueArray && m_isovalueArray->size() > 0
+      && m_isovalueArray->elementType() == ANARI_FLOAT32) {
+    auto iv = m_isovalueArray->osprayData();
     ospSetParam(og, "isovalue", OSP_DATA, &iv);
   } else {
-    float isovalue;
-    if (!getParam("isovalue", ANARI_FLOAT32, &isovalue)) {
+    if (!m_isovalueSet) {
       reportMessage(ANARI_SEVERITY_WARNING,
           "missing required parameter 'isovalue' on isosurface geometry");
       return;
     }
-    ospSetParam(og, "isovalue", OSP_FLOAT, &isovalue);
+    ospSetParam(og, "isovalue", OSP_FLOAT, &m_isovalue);
   }
 
   m_isovalueValid = true;

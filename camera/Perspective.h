@@ -10,7 +10,11 @@ namespace anari_ospray {
 struct Perspective : public Camera
 {
   Perspective(OSPRayGlobalState *s);
-  void commit() override;
+  void commitParameters() override;
+  void finalize() override;
+ private:
+  float m_fovy{0.f};
+  float m_aspect{1.f};
 };
 
 } // namespace anari_ospray

@@ -12,9 +12,17 @@ namespace anari_ospray {
 
 Object::Object(ANARIDataType type, OSPRayGlobalState *s)
     : helium::BaseObject(type, s)
-{}
+{
+  helium::BaseObject::markParameterChanged();
+  s->commitBuffer.addObjectToCommit(this);
+}
 
-void Object::commit()
+void Object::commitParameters()
+{
+  // no-op
+}
+
+void Object::finalize()
 {
   // no-op
 }

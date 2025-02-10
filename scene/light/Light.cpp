@@ -37,17 +37,18 @@ Light *Light::createInstance(std::string_view subtype, OSPRayGlobalState *s)
     return (Light *)new UnknownObject(ANARI_LIGHT, s);
 }
 
-void Light::markCommitted()
-{
-  Object::markCommitted();
-  deviceState()->objectUpdates.lastBLSCommitSceneRequest =
-      helium::newTimeStamp();
-}
-void Light::commit()
+void Light::commitParameters()
 {
   visible = getParam<bool>("visible", true);
   color = getParam<float3>("color", float3(1, 1, 1));
   intensity = 1.f;
+}
+
+void Light::markFinalized()
+{
+  Object::markFinalized();
+  deviceState()->objectUpdates.lastBLSCommitSceneRequest =
+      helium::newTimeStamp();
 }
 
 OSPLight Light::osprayLight() const

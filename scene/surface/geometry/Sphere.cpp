@@ -12,10 +12,9 @@ Sphere::Sphere(OSPRayGlobalState *s)
       m_vertexRadius(this)
 {}
 
-void Sphere::commit()
+void Sphere::commitParameters()
 {
-  Geometry::commit();
-
+  Geometry::commitParameters();
   m_index = getParamObject<Array1D>("primitive.index");
   m_vertexPosition = getParamObject<Array1D>("vertex.position");
   m_vertexRadius = getParamObject<Array1D>("vertex.radius");
@@ -24,14 +23,16 @@ void Sphere::commit()
   m_attributes[2] = getParamObject<Array1D>("vertex.attribute2");
   m_attributes[3] = getParamObject<Array1D>("vertex.attribute3");
   m_attributes[4] = getParamObject<Array1D>("vertex.color");
+  m_globalRadius = getParam<float>("radius", 0.01f);
+}
 
+void Sphere::finalize()
+{
   if (!m_vertexPosition) {
     reportMessage(ANARI_SEVERITY_WARNING,
         "missing required parameter 'vertex.position' on sphere geometry");
     return;
   }
-
-  m_globalRadius = getParam<float>("radius", 0.01f);
 
   const float *radius = nullptr;
   if (m_vertexRadius)

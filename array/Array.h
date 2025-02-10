@@ -45,16 +45,22 @@ struct Array : public helium::BaseArray
   virtual size_t totalSize() const = 0;
   virtual size_t totalCapacity() const;
 
-  bool getProperty(const std::string_view &name,
-      ANARIDataType type,
-      void *ptr,
-      uint32_t flags) override;
-  void commit() override;
-  void *map() override;
+  virtual void *map() override;
   virtual void unmap() override;
   virtual void privatize() override = 0;
 
+  bool isMapped() const;
+
   bool wasPrivatized() const;
+
+  void markDataModified();
+
+  virtual bool getProperty(const std::string_view &name,
+      ANARIDataType type,
+      void *ptr,
+      uint32_t flags) override;
+  virtual void commitParameters() override;
+  virtual void finalize() override;
 
   OSPData osprayData();
 
@@ -95,6 +101,7 @@ struct Array : public helium::BaseArray
     } privatized;
   } m_hostData;
 
+  helium::TimeStamp m_lastDataModified{0};
   bool m_mapped{false};
   OSPData m_osprayData{nullptr};
 

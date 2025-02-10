@@ -10,7 +10,15 @@ namespace anari_ospray {
 struct Pathtracer : public Renderer
 {
   Pathtracer(OSPRayGlobalState *s);
-  virtual void commit() override;
+  virtual void commitParameters() override;
+  virtual void finalize() override;
+
+ private:
+  int m_lightSamples{-1};
+  int m_roulettePathLength{5};
+  int m_maxScatteringEvents{20};
+  float m_maxContribution{1e20f};
+  bool m_backgroundRefraction{false};
 };
 
 } // namespace anari_ospray

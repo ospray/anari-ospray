@@ -7,15 +7,17 @@ namespace anari_ospray {
 
 HDRI::HDRI(OSPRayGlobalState *s) : Light(s, "hdri"), m_image(this) {}
 
-void HDRI::commit()
+void HDRI::commitParameters()
 {
-  Light::commit();
-
-  auto up = getParam<float3>("up", float3(0, 0, 1));
-  auto direction = getParam<float3>("direction", float3(1, 0, 0));
+  Light::commitParameters();
+  m_up = getParam<float3>("up", float3(0, 0, 1));
+  m_direction = getParam<float3>("direction", float3(1, 0, 0));
   intensity = getParam<float>("scale", 1.f);
   m_image = getParamObject<Array2D>("radiance");
+}
 
+void HDRI::finalize()
+{
   if (!m_image) {
     reportMessage(
         ANARI_SEVERITY_WARNING, "no radiance data provided to HDRI light");
@@ -31,8 +33,8 @@ void HDRI::commit()
   auto ol = osprayLight();
   ospSetParam(ol, "visible", OSP_BOOL, &visible);
   ospSetParam(ol, "color", OSP_VEC3F, &color);
-  ospSetParam(ol, "up", OSP_VEC3F, &up);
-  ospSetParam(ol, "direction", OSP_VEC3F, &direction);
+  ospSetParam(ol, "up", OSP_VEC3F, &m_up);
+  ospSetParam(ol, "direction", OSP_VEC3F, &m_direction);
   ospSetParam(ol, "intensity", OSP_FLOAT, &intensity);
 
   OSPTexture ot = ospNewTexture("texture2d");

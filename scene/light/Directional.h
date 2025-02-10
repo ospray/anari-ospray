@@ -10,7 +10,12 @@ namespace anari_ospray {
 struct Directional : public Light
 {
   Directional(OSPRayGlobalState *d);
-  void commit() override;
+  void commitParameters() override;
+  void finalize() override;
+
+ private:
+  float3 m_direction{0, 0, -1};
+  float m_angularDiameter{0.f};
 };
 
 } // namespace anari_ospray

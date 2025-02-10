@@ -12,19 +12,20 @@ struct Instance : public Object
   Instance(OSPRayGlobalState *s);
   ~Instance() override;
 
-  void commit() override;
+  void commitParameters() override;
+  void finalize() override;
+  void markFinalized() override;
+  bool isValid() const override;
 
   const Group *group() const;
   Group *group();
 
   OSPInstance osprayInstance() const;
 
-  void markCommitted() override;
-
-  bool isValid() const override;
-
  private:
   helium::IntrusivePtr<Group> m_group;
+  mat4 m_xfm{linalg::identity};
+  bool m_xfmSet{false};
   OSPInstance m_osprayInstance{nullptr};
 };
 

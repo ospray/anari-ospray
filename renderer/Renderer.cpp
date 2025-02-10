@@ -20,36 +20,39 @@ Renderer::~Renderer()
   ospRelease(m_osprayRenderer);
 }
 
-void Renderer::commit()
+void Renderer::commitParameters()
 {
   m_bgColor = getParam<float4>("background", float4(float3(0.f), 1.f));
   m_ambientRadiance = getParam<float>("ambientRadiance", 0.f);
   m_ambientColor = getParam<float3>("ambientColor", float3(1, 1, 1));
+  m_pixelSamples = getParam<int>("pixelSamples", 1);
+  m_maxPathLength = getParam<int>("maxPathLength", 20);
+  m_minContribution = getParam<float>("minContribution", 0.001f);
+  m_varianceThreshold = getParam<float>("varianceThreshold", 0.f);
   m_denoiseEnabled = getParam<bool>("denoise", false);
   m_denoiseAlpha = getParam<bool>("denoiseAlpha", false);
-  auto denoiseQuality = getParamString("denoiseQuality", "medium");
-  auto pixelSamples = getParam<int>("pixelSamples", 1);
-  auto maxPathLength = getParam<int>("maxPathLength", 20);
-  auto minContribution = getParam<float>("minContribution", 0.001f);
-  auto varianceThreshold = getParam<float>("varianceThreshold", 0.f);
+  m_denoiseQualityString = getParamString("denoiseQuality", "medium");
+}
 
+void Renderer::finalize()
+{
   auto r = osprayRenderer();
   ospSetParam(r, "backgroundColor", OSP_VEC4F, &m_bgColor);
-  ospSetInt(r, "pixelSamples", pixelSamples);
-  ospSetInt(r, "maxPathLength", maxPathLength);
-  ospSetFloat(r, "minContribution", minContribution);
-  ospSetFloat(r, "varianceThreshold", varianceThreshold);
+  ospSetInt(r, "pixelSamples", m_pixelSamples);
+  ospSetInt(r, "maxPathLength", m_maxPathLength);
+  ospSetFloat(r, "minContribution", m_minContribution);
+  ospSetFloat(r, "varianceThreshold", m_varianceThreshold);
 
-  if (denoiseQuality == "low")
+  if (m_denoiseQualityString == "low")
     m_denoiseQuality = OSP_DENOISER_QUALITY_LOW;
-  else if (denoiseQuality == "high")
+  else if (m_denoiseQualityString == "high")
     m_denoiseQuality = OSP_DENOISER_QUALITY_HIGH;
   else {
     m_denoiseQuality = OSP_DENOISER_QUALITY_MEDIUM;
-    if (denoiseQuality != "medium")
+    if (m_denoiseQualityString != "medium")
       reportMessage(ANARI_SEVERITY_WARNING,
           "Invalid value for denoiseQuality: '%s'. Acceptable values are: 'low', 'medium', 'high'.",
-          denoiseQuality);
+          m_denoiseQualityString);
   }
 
   if (m_denoiseEnabled && ospLoadModule("denoiser") != OSP_NO_ERROR) {

@@ -7,14 +7,16 @@ namespace anari_ospray {
 
 Matte::Matte(OSPRayGlobalState *s) : Material(s, "obj") {}
 
-void Matte::commit()
+void Matte::commitParameters()
 {
   m_color = getParam<float3>("color", float3(0.8f));
   m_colorAttribute = attributeFromString(getParamString("color", "none"));
   m_colorSampler = getParamObject<Sampler>("color");
+  m_opacity = getParam<float>("opacity", 1.f);
+}
 
-  auto opacity = getParam<float>("opacity", 1.f);
-
+void Matte::finalize()
+{
   OSPTexture ot = nullptr;
   if (m_colorSampler && m_colorSampler->isValid()) {
     m_texcoordAttribute = m_colorSampler->inAttribute();
@@ -29,7 +31,7 @@ void Matte::commit()
   else
     ospRemoveParam(om, "map_kd");
 
-  ospSetParam(om, "d", OSP_FLOAT, &opacity);
+  ospSetParam(om, "d", OSP_FLOAT, &m_opacity);
 
   ospCommit(om);
 }

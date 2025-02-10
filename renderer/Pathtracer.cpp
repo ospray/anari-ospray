@@ -6,26 +6,28 @@
 namespace anari_ospray {
 
 Pathtracer::Pathtracer(OSPRayGlobalState *s) : Renderer(s, "pathtracer")
+{}
+
+void Pathtracer::commitParameters()
 {
-  commit();
+  Renderer::commitParameters();
+  m_lightSamples = getParam<int>("lightSamples", -1);
+  m_roulettePathLength = getParam<int>("roulettePathLength", 5);
+  m_maxScatteringEvents = getParam<int>("maxScatteringEvents", 20);
+  m_maxContribution = getParam<float>("maxContribution", 1e20f);
+  m_backgroundRefraction = getParam<bool>("backgroundRefraction", false);
 }
 
-void Pathtracer::commit()
+void Pathtracer::finalize()
 {
-  Renderer::commit();
-
-  bool lightSamples = getParam<int>("lightSamples", -1);
-  int roulettePathLength = getParam<int>("roulettePathLength", 5);
-  int maxScatteringEvents = getParam<int>("maxScatteringEvents", 20);
-  float maxContribution = getParam<float>("maxContribution", 1e20f);
-  bool backgroundRefraction = getParam<bool>("backgroundRefraction", false);
+  Renderer::finalize();
 
   auto r = osprayRenderer();
-  ospSetInt(r, "lightSamples", lightSamples);
-  ospSetInt(r, "roulettePathLength", roulettePathLength);
-  ospSetInt(r, "maxScatteringEvents", maxScatteringEvents);
-  ospSetFloat(r, "maxContribution", maxContribution);
-  ospSetBool(r, "backgroundRefraction", backgroundRefraction);
+  ospSetInt(r, "lightSamples", m_lightSamples);
+  ospSetInt(r, "roulettePathLength", m_roulettePathLength);
+  ospSetInt(r, "maxScatteringEvents", m_maxScatteringEvents);
+  ospSetFloat(r, "maxContribution", m_maxContribution);
+  ospSetBool(r, "backgroundRefraction", m_backgroundRefraction);
   ospCommit(r);
 }
 

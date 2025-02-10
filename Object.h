@@ -21,11 +21,12 @@ struct Object : public helium::BaseObject
   virtual bool getProperty(const std::string_view &name,
       ANARIDataType type,
       void *ptr,
-      uint32_t flags);
+      uint32_t flags) override;
 
-  virtual void commit();
+  virtual void commitParameters() override;
+  virtual void finalize() override;
 
-  virtual bool isValid() const;
+  virtual bool isValid() const override;
 
   OSPRayGlobalState *deviceState() const;
 };

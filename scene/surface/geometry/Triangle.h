@@ -11,7 +11,8 @@ struct Triangle : public Geometry
 {
   Triangle(OSPRayGlobalState *s);
 
-  void commit() override;
+  void commitParameters() override;
+  void finalize() override;
 
   void setColorAttribute(Attribute attr, OSPGeometricModel om) override;
   void setTextureCoordinateAttribute(Attribute attr) override;

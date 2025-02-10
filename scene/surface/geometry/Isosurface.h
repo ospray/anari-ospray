@@ -12,14 +12,19 @@ struct Isosurface : public Geometry
 {
   Isosurface(OSPRayGlobalState *s);
 
-  void commit() override;
+  void commitParameters() override;
+  void finalize() override;
 
   bool isValid() const override;
 
  private:
   helium::IntrusivePtr<SpatialField> m_field;
-  helium::ChangeObserverPtr<Array1D> m_isovalue;
+  helium::ChangeObserverPtr<Array1D> m_isovalueArray;
 
+  float m_isovalue;
+  bool m_isovalueSet{false};
+ 
+  // Either scalar or array provided:
   bool m_isovalueValid{false};
 };
 

@@ -7,23 +7,30 @@ namespace anari_ospray {
 
 SciVis::SciVis(OSPRayGlobalState *s)
     : Renderer(s, s->distributed ? "mpiRaycast" : "scivis")
+{}
+
+void SciVis::commitParameters()
 {
-  commit();
+  Renderer::commitParameters();
+  m_shadows = getParam<bool>("shadows", false);
+  m_visibleLights = getParam<bool>("visibleLights", false);
+  m_aoSamples = getParam<int>("aoSamples", 0);
+  m_aoDistance = getParam<float>("aoDistance", 1e20f);
+  m_volumeSamplingRate = getParam<float>("volumeSamplingRate", 1.f);
 }
 
-void SciVis::commit()
+void SciVis::finalize()
 {
-  Renderer::commit();
+  Renderer::finalize();
 
   auto r = osprayRenderer();
   if (!deviceState()->distributed) {
-    ospSetBool(r, "shadows", getParam<bool>("shadows", false));
-    ospSetBool(r, "visibleLights", getParam<bool>("visibleLights", false));
+    ospSetBool(r, "shadows", m_shadows);
+    ospSetBool(r, "visibleLights", m_visibleLights);
   }
-  ospSetInt(r, "aoSamples", getParam<int>("aoSamples", 0));
-  ospSetFloat(r, "aoDistance", getParam<float>("aoDistance", 1e20f));
-  ospSetFloat(
-      r, "volumeSamplingRate", getParam<float>("volumeSamplingRate", 1.f));
+  ospSetInt(r, "aoSamples", m_aoSamples);
+  ospSetFloat(r, "aoDistance", m_aoDistance);
+  ospSetFloat(r, "volumeSamplingRate", m_volumeSamplingRate);
   ospCommit(r);
 }
 

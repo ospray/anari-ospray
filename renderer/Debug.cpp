@@ -6,18 +6,20 @@
 namespace anari_ospray {
 
 Debug::Debug(OSPRayGlobalState *s) : Renderer(s, "debug")
+{}
+
+void Debug::commitParameters()
 {
-  commit();
+  Renderer::commitParameters();
+  m_method = getParamString("method", "eyeLight");
 }
 
-void Debug::commit()
+void Debug::finalize()
 {
-  Renderer::commit();
-
-  auto method = getParamString("method", "eyeLight");
+  Renderer::finalize();
 
   auto ospR = osprayRenderer();
-  ospSetParam(ospR, "method", OSP_STRING, method.c_str());
+  ospSetParam(ospR, "method", OSP_STRING, m_method.c_str());
   ospCommit(ospR);
 }
 

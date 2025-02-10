@@ -14,7 +14,8 @@ struct TransferFunction1DVolume : public Volume
   TransferFunction1DVolume(OSPRayGlobalState *d);
   ~TransferFunction1DVolume();
 
-  void commit() override;
+  void commitParameters() override;
+  void finalize() override;
 
   bool isValid() const override;
 
@@ -22,6 +23,8 @@ struct TransferFunction1DVolume : public Volume
   helium::IntrusivePtr<SpatialField> m_field;
   helium::ChangeObserverPtr<Array1D> m_colorData;
   helium::ChangeObserverPtr<Array1D> m_opacityData;
+  float2 m_valueRange{0.f, 1.f};
+  float m_densityScale{1.f};
 
   OSPTransferFunction m_osprayTF{nullptr};
 };

@@ -10,7 +10,15 @@ namespace anari_ospray {
 struct SciVis : public Renderer
 {
   SciVis(OSPRayGlobalState *s);
-  virtual void commit() override;
+  virtual void commitParameters() override;
+  virtual void finalize() override;
+
+ private:
+  bool m_shadows{false};
+  bool m_visibleLights{false};
+  int m_aoSamples{0};
+  float m_aoDistance{1e20f};
+  float m_volumeSamplingRate{1.f};
 };
 
 } // namespace anari_ospray

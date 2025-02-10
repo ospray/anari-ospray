@@ -11,7 +11,7 @@ UnstructuredField::UnstructuredField(OSPRayGlobalState *d)
     : SpatialField(d, "unstructured")
 {}
 
-void UnstructuredField::commit()
+void UnstructuredField::commitParameters()
 {
   m_vertex_position = getParamObject<Array1D>("vertex.position");
   m_vertex_data = getParamObject<Array1D>("vertex.data");
@@ -19,6 +19,15 @@ void UnstructuredField::commit()
   m_cell_index = getParamObject<Array1D>("cell.index");
   m_cell_data = getParamObject<Array1D>("cell.data");
   m_cell_type = getParamObject<Array1D>("cell.type");
+  m_indexPrefixed = getParam<bool>("indexPrefixed", false);
+
+  m_hexIterative = getParam<bool>("hexIterative", false);
+  m_precomputedNormals = getParam<bool>("precomputedNormals", false);
+  m_maxIteratorDepth = getParam<int>("maxIteratorDepth", 6);
+}
+
+void UnstructuredField::finalize()
+{
   if (!m_vertex_position) {
     reportMessage(ANARI_SEVERITY_WARNING,
         "missing 'vertex.position' on 'unstructured' field");
@@ -36,11 +45,6 @@ void UnstructuredField::commit()
         "missing data ('vertex.data' or 'cell.data') on 'unstructured' field");
     return;
   }
-
-  m_indexPrefixed = getParam<bool>("indexPrefixed", false);
-  auto hexIterative = getParam<bool>("hexIterative", false);
-  auto precomputedNormals = getParam<bool>("precomputedNormals", false);
-  auto maxIteratorDepth = getParam<int>("maxIteratorDepth", 6);
 
   auto ov = osprayVolume();
   auto ovp = m_vertex_position->osprayData();
@@ -64,9 +68,9 @@ void UnstructuredField::commit()
     ospSetParam(ov, "cell.type", OSP_DATA, &oct);
   }
   ospSetParam(ov, "indexPrefixed", OSP_BOOL, &m_indexPrefixed);
-  ospSetParam(ov, "hexIterative", OSP_BOOL, &hexIterative);
-  ospSetParam(ov, "precomputedNormals", OSP_BOOL, &precomputedNormals);
-  ospSetParam(ov, "maxIteratorDepth", OSP_INT, &maxIteratorDepth);
+  ospSetParam(ov, "hexIterative", OSP_BOOL, &m_hexIterative);
+  ospSetParam(ov, "precomputedNormals", OSP_BOOL, &m_precomputedNormals);
+  ospSetParam(ov, "maxIteratorDepth", OSP_INT, &m_maxIteratorDepth);
   ospCommit(ov);
 }
 

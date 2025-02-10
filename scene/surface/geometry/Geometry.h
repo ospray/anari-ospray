@@ -19,8 +19,8 @@ struct Geometry : public Object
 
   OSPGeometry osprayGeometry() const;
 
-  void commit() override;
-  void markCommitted() override;
+  void commitParameters() override;
+  void markFinalized() override;
 
   virtual void setColorAttribute(Attribute attr, OSPGeometricModel om);
   virtual void setTextureCoordinateAttribute(Attribute attr);

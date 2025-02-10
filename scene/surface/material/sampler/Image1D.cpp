@@ -16,14 +16,17 @@ bool Image1D::isValid() const
   return Sampler::isValid() && m_image;
 }
 
-void Image1D::commit()
+void Image1D::commitParameters()
 {
-  Sampler::commit();
+  Sampler::commitParameters();
   m_image = getParamObject<Array1D>("image");
   m_inAttribute =
       attributeFromString(getParamString("inAttribute", "attribute0"));
-  auto linearFilter = getParamString("filter", "linear") != "nearest";
+  m_filter = getParamString("filter", "linear");
+}
 
+void Image1D::finalize()
+{
   if (!m_image) {
     reportMessage(ANARI_SEVERITY_WARNING,
         "missing required parameter 'image' on image1D sampler");
@@ -34,7 +37,7 @@ void Image1D::commit()
   auto format = OSP_TEXTURE_RGBA32F;
   ospSetParam(ot, "format", OSP_UINT, &format);
   auto filter =
-      linearFilter ? OSP_TEXTURE_FILTER_LINEAR : OSP_TEXTURE_FILTER_NEAREST;
+      m_filter == "linear" ? OSP_TEXTURE_FILTER_LINEAR : OSP_TEXTURE_FILTER_NEAREST;
   ospSetParam(ot, "filter", OSP_UINT, &filter);
 
   auto unpackedColors = convertToColorArray(*m_image);

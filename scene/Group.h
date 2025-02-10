@@ -20,9 +20,9 @@ struct Group : public Object
       void *ptr,
       uint32_t flags) override;
 
-  void commit() override;
-
-  void markCommitted() override;
+  void commitParameters() override;
+  void finalize() override;
+  void markFinalized() override;
 
   OSPGroup osprayGroup() const;
   void ospraySceneConstruct();

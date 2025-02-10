@@ -16,11 +16,14 @@ Surface::~Surface()
   ospRelease(m_osprayModel);
 }
 
-void Surface::commit()
+void Surface::commitParameters()
 {
   m_geometry = getParamObject<Geometry>("geometry");
   m_material = getParamObject<Material>("material");
+}
 
+void Surface::finalize()
+{
   if (!m_material || !m_material->isValid()) {
     reportMessage(ANARI_SEVERITY_WARNING, "missing 'material' on ANARISurface");
     return;
@@ -43,19 +46,9 @@ void Surface::commit()
   ospCommit(om);
 }
 
-const Geometry *Surface::geometry() const
+void Surface::markFinalized()
 {
-  return m_geometry.get();
-}
-
-const Material *Surface::material() const
-{
-  return m_material.ptr;
-}
-
-void Surface::markCommitted()
-{
-  Object::markCommitted();
+  Object::markFinalized();
   deviceState()->objectUpdates.lastBLSReconstructSceneRequest =
       helium::newTimeStamp();
 }
@@ -70,6 +63,16 @@ bool Surface::isValid() const
     return m_geometry && m_material && m_geometry->isValid()
         && m_material->isValid();
   }
+}
+
+const Geometry *Surface::geometry() const
+{
+  return m_geometry.get();
+}
+
+const Material *Surface::material() const
+{
+  return m_material.ptr;
 }
 
 OSPGeometricModel Surface::osprayModel() const
