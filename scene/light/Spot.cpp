@@ -7,35 +7,39 @@ namespace anari_ospray {
 
 Spot::Spot(OSPRayGlobalState *s) : Light(s, "spot") {}
 
-void Spot::commit()
+void Spot::commitParameters()
 {
-  Light::commit();
+  Light::commitParameters();
 
-  auto position = getParam<float3>("position", float3(0, 0, 0));
-  auto direction = getParam<float3>("direction", float3(0, 0, -1));
-  auto openingAngle = degrees(getParam<float>("openingAngle", M_PI));
-  auto falloffAngle = degrees(getParam<float>("falloffAngle", 0.1f));
-  auto radius = getParam<float>("radius", 0.f);
-  auto innerRadius = getParam<float>("innerRadius", 0.f);
+  m_position = getParam<float3>("position", float3(0, 0, 0));
+  m_direction = getParam<float3>("direction", float3(0, 0, -1));
+  m_openingAngle = degrees(getParam<float>("openingAngle", M_PI));
+  m_falloffAngle = degrees(getParam<float>("falloffAngle", 0.1f));
+  m_radius = getParam<float>("radius", 0.f);
+  m_innerRadius = getParam<float>("innerRadius", 0.f);
 
-  OSPIntensityQuantity quantity = OSP_INTENSITY_QUANTITY_INTENSITY;
+  m_quantity = OSP_INTENSITY_QUANTITY_INTENSITY;
   if (hasParam("intensity")) {
     intensity = getParam<float>("intensity", 1.f);
   } else if (hasParam("power")) {
     intensity = getParam<float>("power", 1.f);
-    quantity = OSP_INTENSITY_QUANTITY_POWER;
+    m_quantity = OSP_INTENSITY_QUANTITY_POWER;
   }
+}
+
+void Spot::finalize()
+{
   auto ol = osprayLight();
   ospSetParam(ol, "visible", OSP_BOOL, &visible);
   ospSetParam(ol, "color", OSP_VEC3F, &color);
-  ospSetParam(ol, "position", OSP_VEC3F, &position);
-  ospSetParam(ol, "direction", OSP_VEC3F, &direction);
-  ospSetParam(ol, "openingAngle", OSP_FLOAT, &openingAngle);
-  ospSetParam(ol, "penumbraAngle", OSP_FLOAT, &falloffAngle);
-  ospSetParam(ol, "radius", OSP_FLOAT, &radius);
-  ospSetParam(ol, "innerRadius", OSP_FLOAT, &innerRadius);
+  ospSetParam(ol, "position", OSP_VEC3F, &m_position);
+  ospSetParam(ol, "direction", OSP_VEC3F, &m_direction);
+  ospSetParam(ol, "openingAngle", OSP_FLOAT, &m_openingAngle);
+  ospSetParam(ol, "penumbraAngle", OSP_FLOAT, &m_falloffAngle);
+  ospSetParam(ol, "radius", OSP_FLOAT, &m_radius);
+  ospSetParam(ol, "innerRadius", OSP_FLOAT, &m_innerRadius);
   ospSetParam(ol, "intensity", OSP_FLOAT, &intensity);
-  ospSetParam(ol, "intensityQuantity", OSP_UINT, &quantity);
+  ospSetParam(ol, "intensityQuantity", OSP_UINT, &m_quantity);
   ospCommit(ol);
 }
 

@@ -11,11 +11,8 @@ Array1D::Array1D(OSPRayGlobalState *state, const Array1DMemoryDescriptor &d)
   initManagedMemory();
 }
 
-void Array1D::commit()
+void Array1D::commitParameters()
 {
-  auto oldBegin = m_begin;
-  auto oldEnd = m_end;
-
   m_begin = getParam<size_t>("begin", 0);
   m_begin = std::clamp(m_begin, size_t(0), m_capacity - 1);
   m_end = getParam<size_t>("end", m_capacity);
@@ -31,9 +28,12 @@ void Array1D::commit()
         "array 'begin' is not less than 'end', swapping values");
     std::swap(m_begin, m_end);
   }
+}
 
-  if (m_begin != oldBegin || m_end != oldEnd)
-    notifyChangeObservers();
+void Array1D::finalize()
+{
+  markDataModified();
+  notifyChangeObservers();
 }
 
 size_t Array1D::totalSize() const
@@ -46,14 +46,14 @@ size_t Array1D::totalCapacity() const
   return m_capacity;
 }
 
-void *Array1D::begin() const
+const void *Array1D::begin() const
 {
   auto *p = (unsigned char *)data();
   auto s = anari::sizeOf(elementType());
   return p + (s * m_begin);
 }
 
-void *Array1D::end() const
+const void *Array1D::end() const
 {
   auto *p = (unsigned char *)data();
   auto s = anari::sizeOf(elementType());

@@ -12,12 +12,15 @@ struct StructuredRegularField : public SpatialField
 {
   StructuredRegularField(OSPRayGlobalState *d);
 
-  void commit() override;
+  void commitParameters() override;
+  void finalize() override;
 
   bool isValid() const override;
 
  private:
   helium::IntrusivePtr<Array3D> m_data;
+  float3 m_origin{0.f};
+  float3 m_spacing{1.f};
 };
 
 } // namespace anari_ospray

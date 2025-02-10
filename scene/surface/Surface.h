@@ -13,13 +13,13 @@ struct Surface : public Object
   Surface(OSPRayGlobalState *s);
   ~Surface() override;
 
-  void commit() override;
+  void commitParameters() override;
+  void finalize() override;
+  void markFinalized() override;
+  bool isValid() const override;
 
   const Geometry *geometry() const;
   const Material *material() const;
-
-  void markCommitted() override;
-  bool isValid() const override;
 
   OSPGeometricModel osprayModel() const;
 

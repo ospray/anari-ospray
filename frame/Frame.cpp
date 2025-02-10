@@ -39,21 +39,27 @@ OSPRayGlobalState *Frame::deviceState() const
   return (OSPRayGlobalState *)helium::BaseObject::m_state;
 }
 
-void Frame::commit()
+void Frame::commitParameters()
 {
   m_renderer = getParamObject<Renderer>("renderer");
+  m_camera = getParamObject<Camera>("camera");
+  m_world = getParamObject<World>("world");
+  m_colorType = getParam<anari::DataType>("channel.color", ANARI_UNKNOWN);
+  m_frameData.size = getParam<uint2>("size", uint2(10));
+}
+
+void Frame::finalize()
+{
   if (!m_renderer) {
     reportMessage(ANARI_SEVERITY_WARNING,
         "missing required parameter 'renderer' on frame");
   }
 
-  m_camera = getParamObject<Camera>("camera");
   if (!m_camera) {
     reportMessage(
         ANARI_SEVERITY_WARNING, "missing required parameter 'camera' on frame");
   }
 
-  m_world = getParamObject<World>("world");
   if (!m_world) {
     reportMessage(
         ANARI_SEVERITY_WARNING, "missing required parameter 'world' on frame");
@@ -61,10 +67,6 @@ void Frame::commit()
 
   m_valid = m_renderer && m_renderer->isValid() && m_camera
       && m_camera->isValid() && m_world && m_world->isValid();
-
-  m_colorType = getParam<anari::DataType>("channel.color", ANARI_UNKNOWN);
-
-  m_frameData.size = getParam<uint2>("size", uint2(10));
 
   initFB(m_renderer->denoise());
 }
@@ -113,7 +115,7 @@ void Frame::renderFrame()
 
   auto start = std::chrono::steady_clock::now();
 
-  state->commitBufferFlush();
+  state->commitBuffer.flush();
 
   if (m_denoising != m_renderer->denoise())
     initFB(!m_denoising); // toggle denoiser
@@ -132,7 +134,7 @@ void Frame::renderFrame()
     return;
   }
 
-  if (state->commitBufferLastFlush() > m_frameLastRendered) {
+  if (state->commitBuffer.lastObjectFinalization() > m_frameLastRendered) {
     m_world->setAmbientLightValues(
         m_renderer->ambientColor(), m_renderer->ambientRadiance());
     ospResetAccumulation(m_osprayFrameBuffer);

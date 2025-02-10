@@ -40,6 +40,7 @@ Array::Array(ANARIDataType type,
   if (d.appMemory) {
     m_ownership =
         d.deleter ? ArrayDataOwnership::CAPTURED : ArrayDataOwnership::SHARED;
+    markDataModified();
   } else
     m_ownership = ArrayDataOwnership::MANAGED;
 
@@ -73,18 +74,17 @@ ArrayDataOwnership Array::ownership() const
   return m_ownership;
 }
 
-void *Array::data() const
+const void *Array::data() const
 {
   switch (ownership()) {
   case ArrayDataOwnership::SHARED:
-    return const_cast<void *>(
-        wasPrivatized() ? m_hostData.privatized.mem : m_hostData.shared.mem);
+    return wasPrivatized() ? m_hostData.privatized.mem : m_hostData.shared.mem;
     break;
   case ArrayDataOwnership::CAPTURED:
-    return const_cast<void *>(m_hostData.captured.mem);
+    return m_hostData.captured.mem;
     break;
   case ArrayDataOwnership::MANAGED:
-    return const_cast<void *>(m_hostData.managed.mem);
+    return m_hostData.managed.mem;
     break;
   default:
     break;
@@ -98,43 +98,59 @@ size_t Array::totalCapacity() const
   return totalSize();
 }
 
+void *Array::map()
+{
+  if (isMapped()) {
+    reportMessage(ANARI_SEVERITY_WARNING,
+        "array mapped again without being previously unmapped");
+  }
+  m_mapped = true;
+  deviceState()->waitOnCurrentFrame();
+  return const_cast<void *>(data());
+}
+
+void Array::unmap()
+{
+  if (!isMapped()) {
+    reportMessage(ANARI_SEVERITY_WARNING,
+        "array unmapped again without being previously mapped");
+    return;
+  }
+  m_mapped = false;
+  markDataModified();
+  makeOSPRayDataObject();
+  notifyChangeObservers();
+}
+
+bool Array::isMapped() const
+{
+  return m_mapped;
+}
+
+bool Array::wasPrivatized() const
+{
+  return m_privatized;
+}
+
+void Array::markDataModified()
+{
+  m_lastDataModified = helium::newTimeStamp();
+}
+
 bool Array::getProperty(
     const std::string_view &name, ANARIDataType type, void *ptr, uint32_t flags)
 {
   return 0;
 }
 
-void Array::commit()
+void Array::commitParameters()
 {
   // no-op
 }
 
-void *Array::map()
+void Array::finalize()
 {
-  if (m_mapped) {
-    reportMessage(ANARI_SEVERITY_WARNING,
-        "array mapped again without being previously unmapped");
-  }
-  m_mapped = true;
-  deviceState()->waitOnCurrentFrame();
-  return data();
-}
-
-void Array::unmap()
-{
-  if (!m_mapped) {
-    reportMessage(ANARI_SEVERITY_WARNING,
-        "array unmapped again without being previously mapped");
-    return;
-  }
-  m_mapped = false;
-  makeOSPRayDataObject();
-  notifyChangeObservers();
-}
-
-bool Array::wasPrivatized() const
-{
-  return m_privatized;
+  // no-op
 }
 
 OSPData Array::osprayData()
@@ -196,8 +212,15 @@ void Array::initManagedMemory()
   if (ownership() == ArrayDataOwnership::MANAGED) {
     auto totalBytes = totalSize() * anari::sizeOf(elementType());
     m_hostData.managed.mem = malloc(totalBytes);
-    std::memset(data(), 0, totalBytes);
+    std::memset(m_hostData.managed.mem, 0, totalBytes);
   }
+}
+
+void Array::on_NoPublicReferences()
+{
+  reportMessage(ANARI_SEVERITY_DEBUG, "privatizing array");
+  if (!wasPrivatized() && ownership() != ArrayDataOwnership::MANAGED)
+    privatize();
 }
 
 void Array::makeOSPRayDataObject()

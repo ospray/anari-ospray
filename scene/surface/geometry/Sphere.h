@@ -11,7 +11,8 @@ struct Sphere : public Geometry
 {
   Sphere(OSPRayGlobalState *s);
 
-  void commit() override;
+  void commitParameters() override;
+  void finalize() override;
 
   void setTextureCoordinateAttribute(Attribute attr) override;
 

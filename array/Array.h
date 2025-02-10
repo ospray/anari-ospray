@@ -37,24 +37,29 @@ struct Array : public helium::BaseArray
   ANARIDataType elementType() const;
   ArrayDataOwnership ownership() const;
 
-  void *data() const;
+  const void *data() const;
 
   template <typename T>
-  T *dataAs() const;
+  const T *dataAs() const;
 
   virtual size_t totalSize() const = 0;
   virtual size_t totalCapacity() const;
 
-  bool getProperty(const std::string_view &name,
+  virtual void *map() override;
+  virtual void unmap() override;
+
+  bool isMapped() const;
+
+  bool wasPrivatized() const;
+
+  void markDataModified();
+
+  virtual bool getProperty(const std::string_view &name,
       ANARIDataType type,
       void *ptr,
       uint32_t flags) override;
-  void commit() override;
-  void *map() override;
-  virtual void unmap() override;
-  virtual void privatize() override = 0;
-
-  bool wasPrivatized() const;
+  virtual void commitParameters() override;
+  virtual void finalize() override;
 
   OSPData osprayData();
 
@@ -63,9 +68,14 @@ struct Array : public helium::BaseArray
   /////////////////////////////////////////////////////////////////////////////
 
  protected:
+  virtual void privatize() override = 0;
+
   void makePrivatizedCopy(size_t numElements);
   void freeAppMemory();
   void initManagedMemory();
+
+  template <typename T>
+  void throwIfDifferentElementType() const;
 
   virtual void makeOSPRayDataObject();
   void releaseOSPRayDataObject();
@@ -95,14 +105,16 @@ struct Array : public helium::BaseArray
     } privatized;
   } m_hostData;
 
+  helium::TimeStamp m_lastDataModified{0};
   bool m_mapped{false};
   OSPData m_osprayData{nullptr};
 
  private:
+  void on_NoPublicReferences() override;
+
   ArrayDataOwnership m_ownership{ArrayDataOwnership::INVALID};
   ANARIDataType m_elementType{ANARI_UNKNOWN};
   bool m_privatized{false};
-  mutable bool m_usedOnDevice{false};
 };
 
 std::vector<float4> convertToColorArray(const Array &arr);
@@ -111,12 +123,26 @@ std::vector<float2> convertToTexcoordArray(const Array &arr);
 // Inlined definitions ////////////////////////////////////////////////////////
 
 template <typename T>
-inline T *Array::dataAs() const
+inline const T *Array::dataAs() const
 {
-  if (anari::ANARITypeFor<T>::value != m_elementType)
-    throw std::runtime_error("incorrect element type queried for array");
+  throwIfDifferentElementType<T>();
+  return (const T *)data();
+}
 
-  return (T *)data();
+template <typename T>
+inline void Array::throwIfDifferentElementType() const
+{
+  constexpr auto t = anari::ANARITypeFor<T>::value;
+  static_assert(
+      t != ANARI_UNKNOWN, "unknown type used to query array element type");
+
+  if (t != elementType()) {
+    std::stringstream msg;
+    msg << "incorrect element type queried for array -- asked for '"
+        << anari::toString(t) << "', but array stores '"
+        << anari::toString(elementType()) << "'";
+    throw std::runtime_error(msg.str());
+  }
 }
 
 } // namespace anari_ospray

@@ -53,7 +53,7 @@ OSPGeometry Geometry::osprayGeometry() const
   return m_osprayGeometry;
 }
 
-void Geometry::commit()
+void Geometry::commitParameters()
 {
   m_attributes[0] = getParamObject<Array1D>("primitive.attribute0");
   m_attributes[1] = getParamObject<Array1D>("primitive.attribute1");
@@ -62,9 +62,9 @@ void Geometry::commit()
   m_attributes[4] = getParamObject<Array1D>("primitive.color");
 }
 
-void Geometry::markCommitted()
+void Geometry::markFinalized()
 {
-  Object::markCommitted();
+  Object::markFinalized();
   deviceState()->objectUpdates.lastBLSCommitSceneRequest =
       helium::newTimeStamp();
 }

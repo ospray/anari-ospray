@@ -29,16 +29,16 @@ uint2 Array2D::size() const
   return uint2(uint32_t(size(0)), uint32_t(size(1)));
 }
 
-void Array2D::privatize()
-{
-  makePrivatizedCopy(size(0) * size(1));
-}
-
 void Array2D::makeOSPRayDataObject()
 {
   releaseOSPRayDataObject();
   m_osprayData = ospNewSharedData(
       data(), enumCast<OSPDataType>(elementType()), size().x, 0, size().y, 0);
+}
+
+void Array2D::privatize()
+{
+  makePrivatizedCopy(size(0) * size(1));
 }
 
 } // namespace anari_ospray

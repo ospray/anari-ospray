@@ -264,7 +264,7 @@ int OSPRayDevice::getProperty(ANARIObject object,
   } else {
     if (mask == ANARI_WAIT) {
       deviceState()->waitOnCurrentFrame();
-      m_state->commitBufferFlush();
+      m_state->commitBuffer.flush();
     }
     return helium::referenceFromHandle(object).getProperty(
         name, type, mem, mask);
@@ -424,7 +424,7 @@ OSPRayDevice::~OSPRayDevice()
 
   auto &state = *deviceState();
 
-  state.commitBufferClear();
+  state.commitBuffer.clear();
 
   reportMessage(ANARI_SEVERITY_DEBUG, "destroying ospray device (%p)", this);
 

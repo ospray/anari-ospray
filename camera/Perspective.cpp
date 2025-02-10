@@ -7,17 +7,18 @@ namespace anari_ospray {
 
 Perspective::Perspective(OSPRayGlobalState *s) : Camera(s, "perspective") {}
 
-void Perspective::commit()
+void Perspective::commitParameters()
 {
-  Camera::commit();
-  // NOTE: demonstrate alternative 'raw' method for getting parameter values
-  float fovy = 0.f;
-  if (!getParam("fovy", ANARI_FLOAT32, &fovy))
-    fovy = radians(60.f);
-  fovy = degrees(fovy);
-  float aspect = getParam<float>("aspect", 1.f);
-  ospSetParam(osprayCamera(), "fovy", OSP_FLOAT, &fovy);
-  ospSetParam(osprayCamera(), "aspect", OSP_FLOAT, &aspect);
+  Camera::commitParameters();
+  m_fovy = degrees(getParam<float>("fovy", M_PI / 3.f));
+  m_aspect = getParam<float>("aspect", 1.f);
+}
+
+void Perspective::finalize()
+{
+  Camera::finalize();
+  ospSetParam(osprayCamera(), "fovy", OSP_FLOAT, &m_fovy);
+  ospSetParam(osprayCamera(), "aspect", OSP_FLOAT, &m_aspect);
   ospCommit(osprayCamera());
 }
 

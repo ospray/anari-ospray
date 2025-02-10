@@ -18,14 +18,15 @@ struct Object : public helium::BaseObject
   Object(ANARIDataType type, OSPRayGlobalState *s);
   virtual ~Object() = default;
 
-  virtual bool getProperty(const std::string_view &name,
+  bool getProperty(const std::string_view &name,
       ANARIDataType type,
       void *ptr,
-      uint32_t flags);
+      uint32_t flags) override;
 
-  virtual void commit();
+  void commitParameters() override;
+  void finalize() override;
 
-  virtual bool isValid() const;
+  bool isValid() const override;
 
   OSPRayGlobalState *deviceState() const;
 };

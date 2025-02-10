@@ -15,10 +15,9 @@ Cylinder::Cylinder(OSPRayGlobalState *s)
       m_vertexPosition(this)
 {}
 
-void Cylinder::commit()
+void Cylinder::commitParameters()
 {
-  Geometry::commit();
-
+  Geometry::commitParameters();
   m_index = getParamObject<Array1D>("primitive.index");
   m_radius = getParamObject<Array1D>("primitive.radius");
   m_vertexPosition = getParamObject<Array1D>("vertex.position");
@@ -27,7 +26,11 @@ void Cylinder::commit()
   m_vertexAttributes[2] = getParamObject<Array1D>("vertex.attribute2");
   m_vertexAttributes[3] = getParamObject<Array1D>("vertex.attribute3");
   m_vertexAttributes[4] = getParamObject<Array1D>("vertex.color");
+  m_globalRadius = getParam<float>("radius", 1.f);
+}
 
+void Cylinder::finalize()
+{
   if (!m_vertexPosition) {
     reportMessage(ANARI_SEVERITY_WARNING,
         "missing required parameter 'vertex.position' on cylinder geometry");
@@ -35,7 +38,6 @@ void Cylinder::commit()
   }
 
   const float *radius = m_radius ? m_radius->beginAs<float>() : nullptr;
-  m_globalRadius = getParam<float>("radius", 1.f);
 
   std::vector<float4> osprayVertexRadius;
   std::vector<uint32_t> osprayIndex;

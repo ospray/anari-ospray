@@ -11,10 +11,9 @@ Triangle::Triangle(OSPRayGlobalState *s)
     : Geometry(s, "mesh"), m_index(this), m_vertexPosition(this)
 {}
 
-void Triangle::commit()
+void Triangle::commitParameters()
 {
-  Geometry::commit();
-
+  Geometry::commitParameters();
   m_index = getParamObject<Array1D>("primitive.index");
   m_vertexPosition = getParamObject<Array1D>("vertex.position");
   m_vertexAttributes[0] = getParamObject<Array1D>("vertex.attribute0");
@@ -22,7 +21,10 @@ void Triangle::commit()
   m_vertexAttributes[2] = getParamObject<Array1D>("vertex.attribute2");
   m_vertexAttributes[3] = getParamObject<Array1D>("vertex.attribute3");
   m_vertexAttributes[4] = getParamObject<Array1D>("vertex.color");
+}
 
+void Triangle::finalize()
+{
   if (!m_vertexPosition) {
     reportMessage(ANARI_SEVERITY_WARNING,
         "missing required parameter 'vertex.position' on triangle geometry");

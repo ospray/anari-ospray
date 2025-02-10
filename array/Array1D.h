@@ -18,49 +18,43 @@ struct Array1D : public Array
 {
   Array1D(OSPRayGlobalState *state, const Array1DMemoryDescriptor &d);
 
-  void commit() override;
+  void commitParameters() override;
+  void finalize() override;
 
   size_t totalSize() const override;
   size_t totalCapacity() const override;
 
-  void *begin() const;
-  void *end() const;
+  const void *begin() const;
+  const void *end() const;
 
   template <typename T>
-  T *beginAs() const;
+  const T *beginAs() const;
   template <typename T>
-  T *endAs() const;
+  const T *endAs() const;
 
   size_t size() const;
 
-  void privatize() override;
-
  private:
-  void makeOSPRayDataObject() override;
-
   size_t m_capacity{0};
   size_t m_begin{0};
   size_t m_end{0};
+
+  void privatize() override;
+  void makeOSPRayDataObject() override;
 };
 
 // Inlined definitions ////////////////////////////////////////////////////////
 
 template <typename T>
-inline T *Array1D::beginAs() const
+inline const T *Array1D::beginAs() const
 {
-  if (anari::ANARITypeFor<T>::value != elementType())
-    throw std::runtime_error("incorrect element type queried for array");
-
-  return (T *)data() + m_begin;
+  return dataAs<T>() + m_begin;
 }
 
 template <typename T>
-inline T *Array1D::endAs() const
+inline const T *Array1D::endAs() const
 {
-  if (anari::ANARITypeFor<T>::value != elementType())
-    throw std::runtime_error("incorrect element type queried for array");
-
-  return (T *)data() + m_end;
+  return dataAs<T>() + m_end;
 }
 
 } // namespace anari_ospray

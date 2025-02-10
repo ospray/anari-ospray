@@ -24,12 +24,10 @@ struct Array2D : public Array
   size_t size(int dim) const;
   uint2 size() const;
 
-  void privatize() override;
-
  private:
-  void makeOSPRayDataObject() override;
-
   size_t m_size[2] = {0, 0};
+  void privatize() override;
+  void makeOSPRayDataObject() override;
 };
 
 } // namespace anari_ospray

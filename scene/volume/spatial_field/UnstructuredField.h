@@ -12,7 +12,8 @@ struct UnstructuredField : public SpatialField
 {
   UnstructuredField(OSPRayGlobalState *d);
 
-  void commit() override;
+  void commitParameters() override;
+  void finalize() override;
 
   bool isValid() const override;
 
@@ -24,6 +25,10 @@ struct UnstructuredField : public SpatialField
   helium::IntrusivePtr<Array1D> m_cell_data;
   helium::IntrusivePtr<Array1D> m_cell_type;
   bool m_indexPrefixed{false};
+
+  bool m_hexIterative{false};
+  bool m_precomputedNormals{false};
+  int m_maxIteratorDepth{6};
 };
 
 } // namespace anari_ospray

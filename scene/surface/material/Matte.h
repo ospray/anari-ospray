@@ -10,7 +10,11 @@ namespace anari_ospray {
 struct Matte : public Material
 {
   Matte(OSPRayGlobalState *s);
-  void commit() override;
+  void commitParameters() override;
+  void finalize() override;
+
+ private:
+  float m_opacity{1.f};
 };
 
 } // namespace anari_ospray

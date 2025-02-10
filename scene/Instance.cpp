@@ -15,9 +15,14 @@ Instance::~Instance()
   ospRelease(m_osprayInstance);
 }
 
-void Instance::commit()
+void Instance::commitParameters()
 {
   m_group = getParamObject<Group>("group");
+  m_xfmSet = getParam("transform", ANARI_FLOAT32_MAT4, &m_xfm);
+}
+
+void Instance::finalize()
+{
   if (!m_group) {
     reportMessage(ANARI_SEVERITY_WARNING, "missing 'group' on ANARIInstance");
     return;
@@ -28,13 +33,12 @@ void Instance::commit()
 
   ospSetParam(i, "group", OSP_GROUP, &g);
 
-  mat4 xfm = linalg::identity;
-  if (getParam("transform", ANARI_FLOAT32_MAT4, &xfm)) {
+  if (m_xfmSet) {
     mat3x4 a3f;
-    a3f[0] = float3(xfm[0].x, xfm[0].y, xfm[0].z);
-    a3f[1] = float3(xfm[1].x, xfm[1].y, xfm[1].z);
-    a3f[2] = float3(xfm[2].x, xfm[2].y, xfm[2].z);
-    a3f[3] = float3(xfm[3].x, xfm[3].y, xfm[3].z);
+    a3f[0] = float3(m_xfm[0].x, m_xfm[0].y, m_xfm[0].z);
+    a3f[1] = float3(m_xfm[1].x, m_xfm[1].y, m_xfm[1].z);
+    a3f[2] = float3(m_xfm[2].x, m_xfm[2].y, m_xfm[2].z);
+    a3f[3] = float3(m_xfm[3].x, m_xfm[3].y, m_xfm[3].z);
     ospSetParam(i, "transform", OSP_AFFINE3F, &a3f);
   } else
     ospRemoveParam(i, "transform");
@@ -57,9 +61,9 @@ OSPInstance Instance::osprayInstance() const
   return m_osprayInstance;
 }
 
-void Instance::markCommitted()
+void Instance::markFinalized()
 {
-  Object::markCommitted();
+  Object::markFinalized();
   deviceState()->objectUpdates.lastTLSReconstructSceneRequest =
       helium::newTimeStamp();
 }

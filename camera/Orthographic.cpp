@@ -7,13 +7,18 @@ namespace anari_ospray {
 
 Orthographic::Orthographic(OSPRayGlobalState *s) : Camera(s, "orthographic") {}
 
-void Orthographic::commit()
+void Orthographic::commitParameters()
 {
-  Camera::commit();
-  const float aspect = getParam<float>("aspect", 1.f);
-  const float height = getParam<float>("height", 1.f);
-  ospSetParam(osprayCamera(), "aspect", OSP_FLOAT, &aspect);
-  ospSetParam(osprayCamera(), "height", OSP_FLOAT, &height);
+  Camera::commitParameters();
+  m_aspect = getParam<float>("aspect", 1.f);
+  m_height = getParam<float>("height", 1.f);
+}
+
+void Orthographic::finalize()
+{
+  Camera::finalize();
+  ospSetParam(osprayCamera(), "aspect", OSP_FLOAT, &m_aspect);
+  ospSetParam(osprayCamera(), "height", OSP_FLOAT, &m_height);
   ospCommit(osprayCamera());
 }
 

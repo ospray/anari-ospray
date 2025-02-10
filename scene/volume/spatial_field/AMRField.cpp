@@ -31,12 +31,20 @@ AMRField::~AMRField()
 #endif
 }
 
-void AMRField::commit()
+void AMRField::commitParameters()
 {
   m_cellWidth = getParamObject<Array1D>("cellWidth");
   m_block_bounds = getParamObject<Array1D>("block.bounds");
   m_block_level = getParamObject<Array1D>("block.level");
   m_block_data = getParamObject<ObjectArray>("block.data");
+
+  m_origin = getParam<float3>("origin", float3(0.f));
+  m_spacing = getParam<float3>("spacing", float3(1.f));
+  m_method = amrMethodFromString(getParamString("method", "current"));
+}
+
+void AMRField::finalize()
+{
   if (!m_block_data) {
     reportMessage(ANARI_SEVERITY_WARNING,
         "missing required parameter 'block.data' on 'amr' field");
@@ -55,10 +63,6 @@ void AMRField::commit()
     }
   }
 
-  auto origin = getParam<float3>("origin", float3(0.f));
-  auto spacing = getParam<float3>("spacing", float3(1.f));
-  auto method = amrMethodFromString(getParamString("method", "current"));
-
   std::vector<OSPData> extracted_block_data;
 
   std::for_each(
@@ -71,8 +75,8 @@ void AMRField::commit()
       extracted_block_data.data(), OSP_DATA, extracted_block_data.size());
 
   auto ov = osprayVolume();
-  ospSetParam(ov, "gridOrigin", OSP_VEC3F, &origin);
-  ospSetParam(ov, "gridSpacing", OSP_VEC3F, &spacing);
+  ospSetParam(ov, "gridOrigin", OSP_VEC3F, &m_origin);
+  ospSetParam(ov, "gridSpacing", OSP_VEC3F, &m_spacing);
   auto ocw = m_cellWidth->osprayData();
   ospSetParam(ov, "cellWidth", OSP_DATA, &ocw);
   auto obb = m_block_bounds->osprayData();

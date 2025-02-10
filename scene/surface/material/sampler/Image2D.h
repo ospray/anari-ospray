@@ -13,14 +13,15 @@ struct Image2D : public Sampler
   Image2D(OSPRayGlobalState *d);
 
   bool isValid() const override;
-  void commit() override;
+  void commitParameters() override;
+  void finalize() override;
 
   Attribute inAttribute() const override;
 
  private:
   helium::ChangeObserverPtr<Array2D> m_image;
   Attribute m_inAttribute{Attribute::NONE};
-  bool m_linearFilter{true};
+  std::string m_filter;
   std::vector<float4> m_unpackedColors;
 };
 

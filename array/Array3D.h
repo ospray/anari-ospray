@@ -25,12 +25,11 @@ struct Array3D : public Array
   size_t size(int dim) const;
   uint3 size() const;
 
-  void privatize() override;
-
  private:
-  void makeOSPRayDataObject() override;
-
   size_t m_size[3] = {0, 0, 0};
+
+  void privatize() override;
+  void makeOSPRayDataObject() override;
 };
 
 } // namespace anari_ospray

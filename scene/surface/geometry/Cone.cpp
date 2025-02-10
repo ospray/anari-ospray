@@ -14,10 +14,9 @@ Cone::Cone(OSPRayGlobalState *s)
       m_vertexRadius(this)
 {}
 
-void Cone::commit()
+void Cone::commitParameters()
 {
-  Geometry::commit();
-
+  Geometry::commitParameters();
   m_index = getParamObject<Array1D>("primitive.index");
   m_vertexPosition = getParamObject<Array1D>("vertex.position");
   m_vertexRadius = getParamObject<Array1D>("vertex.radius");
@@ -26,7 +25,11 @@ void Cone::commit()
   m_vertexAttributes[2] = getParamObject<Array1D>("vertex.attribute2");
   m_vertexAttributes[3] = getParamObject<Array1D>("vertex.attribute3");
   m_vertexAttributes[4] = getParamObject<Array1D>("vertex.color");
+  m_globalRadius = getParam<float>("radius", 1.f);
+}
 
+void Cone::finalize()
+{
   if (!m_vertexPosition) {
     reportMessage(ANARI_SEVERITY_WARNING,
         "missing required parameter 'vertex.position' on cone geometry");
@@ -35,7 +38,6 @@ void Cone::commit()
 
   const float *radius =
       m_vertexRadius ? m_vertexRadius->beginAs<float>() : nullptr;
-  m_globalRadius = getParam<float>("radius", 1.f);
 
   std::vector<float4> osprayVertexRadius;
   std::vector<uint32_t> osprayIndex;

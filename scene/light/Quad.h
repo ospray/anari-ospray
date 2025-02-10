@@ -10,7 +10,13 @@ namespace anari_ospray {
 struct QuadLight : public Light
 {
   QuadLight(OSPRayGlobalState *d);
-  void commit() override;
+  void commitParameters() override;
+  void finalize() override;
+
+ private:
+  float3 m_position{0, 0, 0};
+  float3 m_edge1{1, 0, 0};
+  float3 m_edge2{0, 1, 0};
 };
 
 } // namespace anari_ospray

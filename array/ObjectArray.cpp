@@ -37,11 +37,8 @@ ObjectArray::~ObjectArray()
       m_appendedHandles.begin(), m_appendedHandles.end(), refDecObject);
 }
 
-void ObjectArray::commit()
+void ObjectArray::commitParameters()
 {
-  auto oldBegin = m_begin;
-  auto oldEnd = m_end;
-
   m_begin = getParam<size_t>("begin", 0);
   m_begin = std::clamp(m_begin, size_t(0), m_capacity - 1);
   m_end = getParam<size_t>("end", m_capacity);
@@ -57,9 +54,12 @@ void ObjectArray::commit()
         "array 'begin' is not less than 'end', swapping values");
     std::swap(m_begin, m_end);
   }
+}
 
-  if (m_begin != oldBegin || m_end != oldEnd)
-    notifyChangeObservers();
+void ObjectArray::finalize()
+{
+  markDataModified();
+  notifyChangeObservers();
 }
 
 size_t ObjectArray::totalSize() const
@@ -77,26 +77,11 @@ size_t ObjectArray::size() const
   return m_end - m_begin;
 }
 
-void ObjectArray::privatize()
-{
-  makePrivatizedCopy(size());
-  freeAppMemory();
-  if (data()) {
-    reportMessage(ANARI_SEVERITY_WARNING,
-        "ObjectArray privatized but host array still present");
-  }
-}
-
 void ObjectArray::unmap()
 {
-  if (!m_mapped) {
-    reportMessage(ANARI_SEVERITY_WARNING,
-        "array unmapped again without being previously mapped");
-    return;
-  }
-  m_mapped = false;
-  updateInternalHandleArrays();
-  notifyChangeObservers();
+  if (isMapped())
+    updateInternalHandleArrays();
+  Array::unmap();
 }
 
 Object **ObjectArray::handlesBegin() const
@@ -143,6 +128,16 @@ void ObjectArray::updateInternalHandleArrays() const
   std::copy(m_appendedHandles.begin(),
       m_appendedHandles.end(),
       m_liveHandles.begin() + size());
+}
+
+void ObjectArray::privatize()
+{
+  makePrivatizedCopy(size());
+  freeAppMemory();
+  if (data()) {
+    reportMessage(ANARI_SEVERITY_WARNING,
+        "ObjectArray privatized but host array still present");
+  }
 }
 
 } // namespace anari_ospray

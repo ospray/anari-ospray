@@ -30,11 +30,6 @@ uint3 Array3D::size() const
   return uint3(uint32_t(size(0)), uint32_t(size(1)), uint32_t(size(2)));
 }
 
-void Array3D::privatize()
-{
-  makePrivatizedCopy(size(0) * size(1) * size(2));
-}
-
 void Array3D::makeOSPRayDataObject()
 {
   releaseOSPRayDataObject();
@@ -46,6 +41,11 @@ void Array3D::makeOSPRayDataObject()
       0,
       size().z,
       0);
+}
+
+void Array3D::privatize()
+{
+  makePrivatizedCopy(size(0) * size(1) * size(2));
 }
 
 } // namespace anari_ospray

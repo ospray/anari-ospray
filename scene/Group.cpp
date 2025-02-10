@@ -29,7 +29,7 @@ bool Group::getProperty(
   if (name == "bounds" && type == ANARI_FLOAT32_BOX3) {
     if (flags & ANARI_WAIT) {
       deviceState()->waitOnCurrentFrame();
-      deviceState()->commitBufferFlush();
+      deviceState()->commitBuffer.flush();
       ospraySceneConstruct();
       ospraySceneCommit();
     }
@@ -41,18 +41,21 @@ bool Group::getProperty(
   return Object::getProperty(name, type, ptr, flags);
 }
 
-void Group::commit()
+void Group::commitParameters()
 {
-  cleanup();
-
   m_surfaceData = getParamObject<ObjectArray>("surface");
   m_volumeData = getParamObject<ObjectArray>("volume");
   m_lightData = getParamObject<ObjectArray>("light");
 }
 
-void Group::markCommitted()
+void Group::finalize()
 {
-  Object::markCommitted();
+  cleanup();
+}
+
+void Group::markFinalized()
+{
+  Object::markFinalized();
   deviceState()->objectUpdates.lastBLSReconstructSceneRequest =
       helium::newTimeStamp();
 }
