@@ -134,7 +134,7 @@ void Frame::renderFrame()
     return;
   }
 
-  if (state->commitBuffer.lastFlush() > m_frameLastRendered) {
+  if (state->commitBuffer.lastObjectFinalization() > m_frameLastRendered) {
     m_world->setAmbientLightValues(
         m_renderer->ambientColor(), m_renderer->ambientRadiance());
     ospResetAccumulation(m_osprayFrameBuffer);
