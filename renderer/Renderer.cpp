@@ -49,7 +49,10 @@ void Renderer::finalize()
     m_denoiseQuality = OSP_DENOISER_QUALITY_HIGH;
   else {
     m_denoiseQuality = OSP_DENOISER_QUALITY_MEDIUM;
-    if (m_denoiseQualityString != "medium")
+    if (m_denoiseQualityString.empty())
+      reportMessage(ANARI_SEVERITY_WARNING,
+          "Parameter denoiseQuality is empty. Acceptable values are: 'low', 'medium', 'high'.");
+    else if (m_denoiseQualityString != "medium")
       reportMessage(ANARI_SEVERITY_WARNING,
           "Invalid value for denoiseQuality: '%s'. Acceptable values are: 'low', 'medium', 'high'.",
           m_denoiseQualityString);
