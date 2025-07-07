@@ -25,6 +25,9 @@ struct TransferFunction1DVolume : public Volume
   helium::ChangeObserverPtr<Array1D> m_opacityData;
   float2 m_valueRange{0.f, 1.f};
   float m_densityScale{1.f};
+  float4 m_color4{1.0f};
+  std::vector<float4> m_color_opacity; // unpacked values
+  std::vector<float> m_opacity; // combined opacity (color alpha * opacity array)
 
   OSPTransferFunction m_osprayTF{nullptr};
 };
