@@ -70,9 +70,7 @@ project_sources(PRIVATE
   scene/light/Quad.cpp
   scene/light/Spot.cpp
   scene/surface/Surface.cpp
-  scene/surface/geometry/Cone.cpp
-  scene/surface/geometry/Curve.cpp
-  scene/surface/geometry/Cylinder.cpp
+  scene/surface/geometry/Curves.cpp
   scene/surface/geometry/Geometry.cpp
   scene/surface/geometry/Isosurface.cpp
   scene/surface/geometry/Quad.cpp

@@ -3,9 +3,7 @@
 
 #include "Geometry.h"
 // subtypes
-#include "Cone.h"
-#include "Curve.h"
-#include "Cylinder.h"
+#include "Curves.h"
 #include "Isosurface.h"
 #include "Quad.h"
 #include "Sphere.h"
@@ -31,11 +29,11 @@ Geometry *Geometry::createInstance(
     std::string_view subtype, OSPRayGlobalState *s)
 {
   if (subtype == "cone")
-    return new Cone(s);
+    return new Curves(s, Curves::Subtype::CONE);
   else if (subtype == "curve")
-    return new Curve(s);
+    return new Curves(s, Curves::Subtype::CURVE);
   else if (subtype == "cylinder")
-    return new Cylinder(s);
+    return new Curves(s, Curves::Subtype::CYLINDER);
   else if (subtype == "isosurface")
     return new Isosurface(s);
   else if (subtype == "quad")
