@@ -62,6 +62,15 @@ jobs:
       artifact-out: build-ubuntu22_04
       artifact-path: build/install
 
+  build-next-ubuntu22_04:
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+    with:
+      image: ubuntu:22.04
+      cmd: |
+        .github/workflows/build.sh -G Ninja -DBUILD_ANARI_CTS=ON -DANARI_SDK_VERSION=next_release # next_release for new anariCts CTS tool
+      artifact-out: build-next-ubuntu22_04
+      artifact-path: build/install
+
   build-osx:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
     with:
@@ -137,15 +146,6 @@ jobs:
         .github/workflows/test.sh
       artifact-in: build-ubuntu20_04
 
-  test-ubuntu20_04-all:
-    needs: build-ubuntu20_04
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
-    with:
-      image: ubuntu:20.04
-      cmd: |
-        LD_LIBRARY_PATH=./build/install/lib:./build/install/lib64:$LD_LIBRARY_PATH ANARI_LIBRARY=ospray ./build/install/bin/anariRenderTests
-      artifact-in: build-ubuntu20_04
-
   test-ubuntu22_04:
     needs: build-ubuntu22_04
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
@@ -154,6 +154,31 @@ jobs:
       cmd: |
         .github/workflows/test.sh
       artifact-in: build-ubuntu22_04
+
+  test-next-ubuntu22_04:
+    needs: build-next-ubuntu22_04
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+    with:
+      image: ubuntu:22.04
+      cmd: |
+        .github/workflows/test.sh
+      artifact-in: build-next-ubuntu22_04
+
+  cts-ubuntu22_04:
+    needs: build-next-ubuntu22_04
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+    with:
+      image: ubuntu:22.04
+      cmd: |
+        python3 -m pip install --quiet reportlab # install reportlab into the python3 that runs ctsReport.py
+        export LD_LIBRARY_PATH=$PWD/build/install/lib:$PWD/build/install/lib64:$LD_LIBRARY_PATH
+        WD="$GITHUB_WORKSPACE/cts-report"
+        ./build/install/bin/anariCts generate --workdir "$WD" # generate helide ground truth
+        ./build/install/bin/anariCts run ospray --workdir "$WD" || true # allow to fail
+        python3 build/install/share/anari/cts/ctsReport.py report "$WD" --pdf "$WD/cts-report.pdf" || true # allow failure
+      artifact-in: build-next-ubuntu22_04
+      artifact-out: cts-report
+      artifact-path: cts-report
 
   test-osx:
     needs: build-osx

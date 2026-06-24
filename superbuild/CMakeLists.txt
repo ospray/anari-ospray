@@ -14,6 +14,8 @@ include(ExternalProject)
 ## Superbuild options ##
 
 option(BUILD_ANARI_SDK_VIEWER "Build interactive viewer app (requires GLFW)" OFF)
+option(BUILD_ANARI_CTS "Build and install the ANARI Conformance Test Suite (CTS)" OFF)
+set(ANARI_SDK_VERSION "main" CACHE STRING "ANARI-SDK git branch or tag to build")
 option(BUILD_TBB_FROM_SOURCE "Build TBB from source or use pre-built version?" OFF)
 option(BUILD_EMBREE_FROM_SOURCE "Build Embree or use pre-built version?" OFF)
 
@@ -32,12 +34,15 @@ ExternalProject_Add(ospray
 )
 
 ExternalProject_Add(anari
-  URL https://github.com/KhronosGroup/ANARI-SDK/archive/main.tar.gz
+  URL https://github.com/KhronosGroup/ANARI-SDK/archive/${ANARI_SDK_VERSION}.tar.gz
   CMAKE_ARGS
     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
     -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
     -DBUILD_VIEWER=${BUILD_ANARI_SDK_VIEWER}
-    -DBUILD_HELIDE_DEVICE=OFF
+    -DBUILD_CTS=${BUILD_ANARI_CTS}
+    -DINSTALL_CTS=${BUILD_ANARI_CTS}
+    -DCTS_ENABLE_GLTF=OFF
+    -DBUILD_HELIDE_DEVICE=${BUILD_ANARI_CTS} # as the CTS reference device
     -DCMAKE_CXX_FLAGS=-D_LIBCPP_DISABLE_AVAILABILITY
 )
 
