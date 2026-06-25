@@ -430,16 +430,13 @@ OSPRayDevice::OSPRayDevice(ANARILibrary l) : helium::BaseDevice(l)
 
 OSPRayDevice::~OSPRayDevice()
 {
-  setOSPRayDevice();
-
   auto &state = *deviceState();
 
   state.commitBuffer.clear();
 
   reportMessage(ANARI_SEVERITY_DEBUG, "destroying ospray device (%p)", this);
 
-  if (!state.distributed) // XXX
-    ospShutdown();
+  ospDeviceRelease(state.osprayDevice);
 }
 
 OSPDevice OSPRayDevice::createDevice() const
@@ -500,32 +497,23 @@ void OSPRayDevice::deviceCommitParameters()
   helium::BaseDevice::deviceCommitParameters();
 }
 
-void OSPRayDevice::setOSPRayDevice()
-{
-  m_appDevice = ospGetCurrentDevice();
-  ospSetCurrentDevice(deviceState()->osprayDevice);
-}
-
-void OSPRayDevice::revertOSPRayDevice()
-{
-  ospSetCurrentDevice(m_appDevice);
-}
-
 OSPRayGlobalState *OSPRayDevice::deviceState() const
 {
   return (OSPRayGlobalState *)helium::BaseDevice::m_state.get();
 }
 
 OSPRayDevice::OSPRayDeviceScope::OSPRayDeviceScope(OSPRayDevice *d)
-    : m_device(d)
 {
   d->initDevice();
-  m_device->setOSPRayDevice();
+  // Make this device current for the call; m_appDevice is saved on the scope (not
+  // on `d`) so the dtor survives `d` being deleted by the guarded release.
+  m_appDevice = ospGetCurrentDevice();
+  ospSetCurrentDevice(d->deviceState()->osprayDevice);
 }
 
 OSPRayDevice::OSPRayDeviceScope::~OSPRayDeviceScope()
 {
-  m_device->revertOSPRayDevice();
+  ospSetCurrentDevice(m_appDevice);
 }
 
 OSPDevice OSPRayDistributedDevice::createDevice() const

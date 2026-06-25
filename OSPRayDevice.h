@@ -165,9 +165,6 @@ struct OSPRayDevice : public helium::BaseDevice
       uint64_t size,
       uint32_t mask) override;
 
-  void setOSPRayDevice();
-  void revertOSPRayDevice();
-
  protected:
   struct OSPRayDeviceScope
   {
@@ -175,13 +172,14 @@ struct OSPRayDevice : public helium::BaseDevice
     ~OSPRayDeviceScope();
 
    private:
-    OSPRayDevice *m_device{nullptr};
+    // On the scope (not OSPRayDevice) so it survives the device being deleted
+    // by a guarded release.
+    OSPDevice m_appDevice{nullptr};
   };
 
   OSPRayGlobalState *deviceState() const;
 
   bool m_initialized{false};
-  OSPDevice m_appDevice{nullptr};
 };
 
 struct OSPRayDistributedDevice : public OSPRayDevice

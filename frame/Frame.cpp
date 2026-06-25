@@ -68,7 +68,7 @@ void Frame::finalize()
   m_valid = m_renderer && m_renderer->isValid() && m_camera
       && m_camera->isValid() && m_world && m_world->isValid();
 
-  initFB(m_renderer->denoise());
+  initFB(m_renderer && m_renderer->denoise());
 }
 
 void Frame::initFB(const bool denoising)
@@ -120,10 +120,10 @@ void Frame::renderFrame()
 
   state->commitBuffer.flush();
 
-  if (m_denoising != m_renderer->denoise())
+  if (m_renderer && m_denoising != m_renderer->denoise())
     initFB(!m_denoising); // toggle denoiser
 
-  if (m_denoising) {
+  if (m_renderer && m_denoising) {
     auto quality = m_renderer->denoiseQuality();
     ospSetParam(m_osprayDenoiser, "quality", OSP_UINT, &quality);
     bool denoiseAlpha = m_renderer->denoiseAlpha();
