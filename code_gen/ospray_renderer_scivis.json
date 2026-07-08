@@ -2,7 +2,11 @@
   "info": {
   "name": "OSPRAY_RENDERER_SCIVIS",
   "type": "extension",
-  "dependencies": []
+  "dependencies" : ["anari_core_1_0"],
+  "implements" : [
+    "khr_renderer_background_color",
+    "khr_renderer_ambient_light"
+  ]
   },
  "objects": [
   {
@@ -70,28 +74,6 @@
      "types": [
       "ANARI_BOOL"
      ]
-    },
-    {
-      "name": "ambientColor",
-      "types": [
-        "ANARI_FLOAT32_VEC3"
-      ],
-      "tags": [],
-      "default": [
-        1.0,
-        1.0,
-        1.0
-      ],
-      "description": "ambient light color (RGB)"
-    },
-    {
-      "name": "ambientRadiance",
-      "types": [
-        "ANARI_FLOAT32"
-      ],
-      "tags": [],
-      "default": 0.0,
-      "description": "ambient light intensity"
     },
     {
      "name": "aoSamples",
