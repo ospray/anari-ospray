@@ -26,6 +26,7 @@ struct Instance : public Object
   helium::IntrusivePtr<Group> m_group;
   mat4 m_xfm{linalg::identity};
   bool m_xfmSet{false};
+  uint32_t m_id{-1u}; // instanceId channel
   OSPInstance m_osprayInstance{nullptr};
 };
 

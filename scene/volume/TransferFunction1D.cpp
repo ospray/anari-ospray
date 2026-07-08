@@ -18,6 +18,7 @@ TransferFunction1DVolume::~TransferFunction1DVolume()
 
 void TransferFunction1DVolume::commitParameters()
 {
+  Volume::commitParameters();
   m_field = getParamObject<SpatialField>("value");
   if (!m_field) {
     reportMessage(ANARI_SEVERITY_WARNING,
@@ -102,7 +103,7 @@ void TransferFunction1DVolume::finalize()
   ospSetParam(om, "volume", OSP_VOLUME, &ov);
   ospSetParam(om, "densityScale", OSP_FLOAT, &m_densityScale);
   ospSetParam(om, "transferFunction", OSP_TRANSFER_FUNCTION, &tf);
-  ospCommit(om);
+  Volume::finalize();
 }
 
 bool TransferFunction1DVolume::isValid() const

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "Frame.h"
+#include "array/Array.h"
 // std
 #include <chrono>
 
@@ -45,6 +46,36 @@ void Frame::commitParameters()
   m_camera = getParamObject<Camera>("camera");
   m_world = getParamObject<World>("world");
   m_colorType = getParam<anari::DataType>("channel.color", ANARI_UNKNOWN);
+  m_depthType = getParam<anari::DataType>("channel.depth", ANARI_UNKNOWN);
+  m_albedoType = getParam<anari::DataType>("channel.albedo", ANARI_UNKNOWN);
+  m_normalType = getParam<anari::DataType>("channel.normal", ANARI_UNKNOWN);
+  m_primIdType =
+      getParam<anari::DataType>("channel.primitiveId", ANARI_UNKNOWN);
+  m_objIdType = getParam<anari::DataType>("channel.objectId", ANARI_UNKNOWN);
+  m_instIdType =
+      getParam<anari::DataType>("channel.instanceId", ANARI_UNKNOWN);
+
+  if (m_colorType != ANARI_UNKNOWN && m_colorType != ANARI_UFIXED8_VEC4
+      && m_colorType != ANARI_UFIXED8_RGBA_SRGB
+      && m_colorType != ANARI_FLOAT32_VEC4)
+    m_colorType = ANARI_UFIXED8_RGBA_SRGB;
+  if (m_depthType != ANARI_FLOAT32)
+    m_depthType = ANARI_UNKNOWN;
+  if (m_normalType != ANARI_FIXED16_VEC3
+      && m_normalType != ANARI_FLOAT32_VEC3)
+    m_normalType = ANARI_UNKNOWN;
+  if (m_albedoType != ANARI_UFIXED8_VEC3
+      && m_albedoType != ANARI_UFIXED8_RGB_SRGB
+      && m_albedoType != ANARI_FLOAT32_VEC3)
+    m_albedoType = ANARI_UNKNOWN;
+  if (m_primIdType != ANARI_UINT32)
+    m_primIdType = ANARI_UNKNOWN;
+  if (m_objIdType != ANARI_UINT32)
+    m_objIdType = ANARI_UNKNOWN;
+  if (m_instIdType != ANARI_UINT32)
+    m_instIdType = ANARI_UNKNOWN;
+
+  m_accumulation = getParam<bool>("accumulation", false);
   m_frameData.size = getParam<uint2>("size", uint2(10));
 }
 
@@ -73,10 +104,28 @@ void Frame::finalize()
 
 void Frame::initFB(const bool denoising)
 {
+  if (m_osprayFrameBuffer) {
+    wait();
+    ospRelease(m_osprayFrameBuffer);
+    m_osprayFrameBuffer = nullptr;
+  }
+
   m_denoising = denoising;
-  auto flags = OSP_FB_COLOR | OSP_FB_DEPTH | OSP_FB_ACCUM;
-  if (m_denoising)
-    flags |= OSP_FB_ALBEDO | OSP_FB_NORMAL;
+  uint32_t flags = OSP_FB_COLOR;
+  if (m_depthType != ANARI_UNKNOWN)
+    flags |= OSP_FB_DEPTH;
+  if (m_accumulation)
+    flags |= OSP_FB_ACCUM;
+  if (denoising || m_albedoType != ANARI_UNKNOWN)
+    flags |= OSP_FB_ALBEDO;
+  if (denoising || m_normalType != ANARI_UNKNOWN)
+    flags |= OSP_FB_NORMAL;
+  if (m_primIdType != ANARI_UNKNOWN)
+    flags |= OSP_FB_ID_PRIMITIVE;
+  if (m_objIdType != ANARI_UNKNOWN)
+    flags |= OSP_FB_ID_OBJECT;
+  if (m_instIdType != ANARI_UNKNOWN)
+    flags |= OSP_FB_ID_INSTANCE;
 
   m_osprayFrameBuffer = ospNewFrameBuffer(m_frameData.size.x,
       m_frameData.size.y,
@@ -121,7 +170,7 @@ void Frame::renderFrame()
   state->commitBuffer.flush();
 
   if (m_renderer && m_denoising != m_renderer->denoise())
-    initFB(!m_denoising); // toggle denoiser
+    initFB(m_renderer->denoise());
 
   if (m_renderer && m_denoising) {
     auto quality = m_renderer->denoiseQuality();
@@ -140,6 +189,8 @@ void Frame::renderFrame()
   if (state->commitBuffer.lastObjectFinalization() > m_frameLastRendered) {
     m_world->setAmbientLightValues(
         m_renderer->ambientColor(), m_renderer->ambientRadiance());
+    ospResetAccumulation(m_osprayFrameBuffer);
+  } else if (!m_accumulation) {
     ospResetAccumulation(m_osprayFrameBuffer);
   }
 
@@ -164,20 +215,72 @@ void *Frame::map(std::string_view channel,
   *width = m_frameData.size.x;
   *height = m_frameData.size.y;
 
-  if (channel == "color" || channel == "channel.color") {
+  const size_t numPixels =
+      size_t(m_frameData.size.x) * size_t(m_frameData.size.y);
+
+  auto mapOspray = [&](OSPFrameBufferChannel ch, const void *&buf) -> void * {
+    buf = ospMapFrameBuffer(m_osprayFrameBuffer, ch);
+    return const_cast<void *>(buf);
+  };
+
+  if ((channel == "color" || channel == "channel.color")
+      && m_colorType != ANARI_UNKNOWN) {
     *pixelType = m_colorType;
-    return (void *)(m_osprayColorBuffer =
-                        ospMapFrameBuffer(m_osprayFrameBuffer, OSP_FB_COLOR));
-  } else if (channel == "depth" || channel == "channel.depth") {
-    *pixelType = ANARI_FLOAT32;
-    return (void *)(m_osprayDepthBuffer =
-                        ospMapFrameBuffer(m_osprayFrameBuffer, OSP_FB_DEPTH));
-  } else {
-    *width = 0;
-    *height = 0;
-    *pixelType = ANARI_UNKNOWN;
-    return nullptr;
+    return mapOspray(OSP_FB_COLOR, m_osprayColorBuffer);
   }
+  if ((channel == "depth" || channel == "channel.depth")
+      && m_depthType != ANARI_UNKNOWN) {
+    *pixelType = ANARI_FLOAT32;
+    return mapOspray(OSP_FB_DEPTH, m_osprayDepthBuffer);
+  }
+  if ((channel == "albedo" || channel == "channel.albedo")
+      && m_albedoType != ANARI_UNKNOWN) {
+    *pixelType = m_albedoType;
+    const float *src = static_cast<const float *>(
+        mapOspray(OSP_FB_ALBEDO, m_osprayAlbedoBuffer));
+    if (!src)
+      return nullptr;
+    if (m_albedoType == ANARI_FLOAT32_VEC3)
+      return const_cast<float *>(src);
+    m_albedoStaging = convertFromFloatChannel(src, numPixels, 3, m_albedoType);
+    ospUnmapFrameBuffer(m_osprayAlbedoBuffer, m_osprayFrameBuffer);
+    m_osprayAlbedoBuffer = nullptr;
+    return m_albedoStaging.data();
+  }
+  if ((channel == "normal" || channel == "channel.normal")
+      && m_normalType != ANARI_UNKNOWN) {
+    *pixelType = m_normalType;
+    const float *src = static_cast<const float *>(
+        mapOspray(OSP_FB_NORMAL, m_osprayNormalBuffer));
+    if (!src)
+      return nullptr;
+    if (m_normalType == ANARI_FLOAT32_VEC3)
+      return const_cast<float *>(src);
+    m_normalStaging = convertFromFloatChannel(src, numPixels, 3, m_normalType);
+    ospUnmapFrameBuffer(m_osprayNormalBuffer, m_osprayFrameBuffer);
+    m_osprayNormalBuffer = nullptr;
+    return m_normalStaging.data();
+  }
+  if ((channel == "primitiveId" || channel == "channel.primitiveId")
+      && m_primIdType != ANARI_UNKNOWN) {
+    *pixelType = ANARI_UINT32;
+    return mapOspray(OSP_FB_ID_PRIMITIVE, m_osprayPrimIdBuffer);
+  }
+  if ((channel == "objectId" || channel == "channel.objectId")
+      && m_objIdType != ANARI_UNKNOWN) {
+    *pixelType = ANARI_UINT32;
+    return mapOspray(OSP_FB_ID_OBJECT, m_osprayObjIdBuffer);
+  }
+  if ((channel == "instanceId" || channel == "channel.instanceId")
+      && m_instIdType != ANARI_UNKNOWN) {
+    *pixelType = ANARI_UINT32;
+    return mapOspray(OSP_FB_ID_INSTANCE, m_osprayInstIdBuffer);
+  }
+
+  *width = 0;
+  *height = 0;
+  *pixelType = ANARI_UNKNOWN;
+  return nullptr;
 }
 
 void Frame::unmap(std::string_view channel)
@@ -185,9 +288,37 @@ void Frame::unmap(std::string_view channel)
   if (channel == "color" || channel == "channel.color") {
     if (m_osprayColorBuffer)
       ospUnmapFrameBuffer(m_osprayColorBuffer, m_osprayFrameBuffer);
-  } else if (channel == "depth" || channel == "channel.depth") {
+    m_osprayColorBuffer = nullptr;
+  }
+  if (channel == "depth" || channel == "channel.depth") {
     if (m_osprayDepthBuffer)
       ospUnmapFrameBuffer(m_osprayDepthBuffer, m_osprayFrameBuffer);
+    m_osprayDepthBuffer = nullptr;
+  }
+  if (channel == "albedo" || channel == "channel.albedo") {
+    if (m_osprayAlbedoBuffer)
+      ospUnmapFrameBuffer(m_osprayAlbedoBuffer, m_osprayFrameBuffer);
+    m_osprayAlbedoBuffer = nullptr;
+  }
+  if (channel == "normal" || channel == "channel.normal") {
+    if (m_osprayNormalBuffer)
+      ospUnmapFrameBuffer(m_osprayNormalBuffer, m_osprayFrameBuffer);
+    m_osprayNormalBuffer = nullptr;
+  }
+  if (channel == "primitiveId" || channel == "channel.primitiveId") {
+    if (m_osprayPrimIdBuffer)
+      ospUnmapFrameBuffer(m_osprayPrimIdBuffer, m_osprayFrameBuffer);
+    m_osprayPrimIdBuffer = nullptr;
+  }
+  if (channel == "objectId" || channel == "channel.objectId") {
+    if (m_osprayObjIdBuffer)
+      ospUnmapFrameBuffer(m_osprayObjIdBuffer, m_osprayFrameBuffer);
+    m_osprayObjIdBuffer = nullptr;
+  }
+  if (channel == "instanceId" || channel == "channel.instanceId") {
+    if (m_osprayInstIdBuffer)
+      ospUnmapFrameBuffer(m_osprayInstIdBuffer, m_osprayFrameBuffer);
+    m_osprayInstIdBuffer = nullptr;
   }
 }
 

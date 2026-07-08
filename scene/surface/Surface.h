@@ -27,6 +27,8 @@ struct Surface : public Object
   helium::ChangeObserverPtr<Geometry> m_geometry;
   helium::IntrusivePtr<Material> m_material;
 
+  uint32_t m_id{-1u}; // objectId channel
+
   OSPGeometricModel m_osprayModel{nullptr};
 };
 

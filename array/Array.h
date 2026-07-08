@@ -121,6 +121,12 @@ struct Array : public helium::BaseArray
 std::vector<float4> convertToColorArray(const Array &arr);
 std::vector<float2> convertToTexcoordArray(const Array &arr);
 
+// Repack a float source buffer into `type` (reverse of convertToColorArray).
+std::vector<uint8_t> convertFromFloatChannel(const float *src,
+    size_t numItems,
+    int srcComponents,
+    anari::DataType type);
+
 // Inlined definitions ////////////////////////////////////////////////////////
 
 template <typename T>

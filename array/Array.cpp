@@ -24,6 +24,19 @@ struct convert_toFloat4
   }
 };
 
+template <int T>
+struct convert_fromFloat4
+{
+  using base_type = typename anari::ANARITypeProperties<T>::base_type;
+  const int nc = anari::ANARITypeProperties<T>::components;
+  void operator()(void *dst, size_t offset, const float4 &src)
+  {
+    if constexpr (!anari::isObject(T) && T != ANARI_UNKNOWN)
+      anari::ANARITypeProperties<T>::fromFloat4(
+          (base_type *)dst + nc * offset, &src[0]);
+  }
+};
+
 template <typename T>
 static void zeroOutStruct(T &v)
 {
@@ -248,6 +261,22 @@ std::vector<float4> convertToColorArray(const Array &arr)
     v = anari::anariTypeInvoke<float4, convert_toFloat4>(type, src, i);
     i++;
   });
+  return retval;
+}
+
+std::vector<uint8_t> convertFromFloatChannel(const float *src,
+    size_t numItems,
+    int srcComponents,
+    anari::DataType type)
+{
+  std::vector<uint8_t> retval(numItems * anari::sizeOf(type));
+  for (size_t i = 0; i < numItems; ++i) {
+    float4 v = {0.f, 0.f, 0.f, 1.f};
+    for (int c = 0; c < srcComponents && c < 4; ++c)
+      v[c] = src[i * size_t(srcComponents) + c];
+    anari::anariTypeInvoke<void, convert_fromFloat4>(
+        type, retval.data(), i, v);
+  }
   return retval;
 }
 

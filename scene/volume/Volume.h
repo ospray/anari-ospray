@@ -13,7 +13,13 @@ struct Volume : public Object
   ~Volume();
   static Volume *createInstance(std::string_view subtype, OSPRayGlobalState *d);
 
+  void commitParameters() override;
+  void finalize() override;
+
   OSPVolumetricModel osprayModel() const;
+
+ protected:
+  uint32_t m_id{-1u}; // objectId channel
 
  private:
   OSPVolumetricModel m_osprayModel{nullptr};

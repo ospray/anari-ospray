@@ -17,6 +17,21 @@ Volume::~Volume()
   ospRelease(m_osprayModel);
 }
 
+void Volume::commitParameters()
+{
+  m_id = getParam<uint32_t>("id", -1u);
+}
+
+void Volume::finalize()
+{
+  auto om = osprayModel();
+  if (m_id != -1u)
+    ospSetParam(om, "id", OSP_UINT, &m_id);
+  else
+    ospRemoveParam(om, "id");
+  ospCommit(om);
+}
+
 Volume *Volume::createInstance(std::string_view subtype, OSPRayGlobalState *s)
 {
   if (subtype == "transferFunction1D" || subtype == "scivis")

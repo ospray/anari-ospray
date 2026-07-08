@@ -19,6 +19,7 @@ void Instance::commitParameters()
 {
   m_group = getParamObject<Group>("group");
   m_xfmSet = getParam("transform", ANARI_FLOAT32_MAT4, &m_xfm);
+  m_id = getParam<uint32_t>("id", -1u);
 }
 
 void Instance::finalize()
@@ -42,6 +43,11 @@ void Instance::finalize()
     ospSetParam(i, "transform", OSP_AFFINE3F, &a3f);
   } else
     ospRemoveParam(i, "transform");
+
+  if (m_id != -1u)
+    ospSetParam(i, "id", OSP_UINT, &m_id);
+  else
+    ospRemoveParam(i, "id");
 
   ospCommit(i);
 }

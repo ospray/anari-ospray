@@ -20,6 +20,7 @@ void Surface::commitParameters()
 {
   m_geometry = getParamObject<Geometry>("geometry");
   m_material = getParamObject<Material>("material");
+  m_id = getParam<uint32_t>("id", -1u);
 }
 
 void Surface::finalize()
@@ -43,6 +44,10 @@ void Surface::finalize()
   auto m = m_material->osprayMaterial();
   ospSetParam(om, "geometry", OSP_GEOMETRY, &g);
   ospSetParam(om, "material", OSP_MATERIAL, &m);
+  if (m_id != -1u)
+    ospSetParam(om, "id", OSP_UINT, &m_id);
+  else
+    ospRemoveParam(om, "id");
   ospCommit(om);
 }
 

@@ -57,6 +57,12 @@ struct Frame : public helium::BaseFrame
 
   anari::DataType m_colorType{ANARI_UNKNOWN};
   anari::DataType m_depthType{ANARI_UNKNOWN};
+  anari::DataType m_albedoType{ANARI_UNKNOWN};
+  anari::DataType m_normalType{ANARI_UNKNOWN};
+  anari::DataType m_primIdType{ANARI_UNKNOWN};
+  anari::DataType m_objIdType{ANARI_UNKNOWN};
+  anari::DataType m_instIdType{ANARI_UNKNOWN};
+  bool m_accumulation{false};
 
   helium::IntrusivePtr<Renderer> m_renderer;
   helium::IntrusivePtr<Camera> m_camera;
@@ -77,6 +83,14 @@ struct Frame : public helium::BaseFrame
 
   const void *m_osprayColorBuffer{nullptr};
   const void *m_osprayDepthBuffer{nullptr};
+  const void *m_osprayAlbedoBuffer{nullptr};
+  const void *m_osprayNormalBuffer{nullptr};
+  const void *m_osprayPrimIdBuffer{nullptr};
+  const void *m_osprayObjIdBuffer{nullptr};
+  const void *m_osprayInstIdBuffer{nullptr};
+
+  std::vector<uint8_t> m_albedoStaging;
+  std::vector<uint8_t> m_normalStaging;
 };
 
 } // namespace anari_ospray
