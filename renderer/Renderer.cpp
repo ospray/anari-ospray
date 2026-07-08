@@ -10,19 +10,21 @@
 namespace anari_ospray {
 
 Renderer::Renderer(OSPRayGlobalState *s, const char *osptype)
-    : Object(ANARI_RENDERER, s)
+    : Object(ANARI_RENDERER, s), m_bgImage(this)
 {
   m_osprayRenderer = ospNewRenderer(osptype);
 }
 
 Renderer::~Renderer()
 {
+  ospRelease(m_backplateTexture);
   ospRelease(m_osprayRenderer);
 }
 
 void Renderer::commitParameters()
 {
   m_bgColor = getParam<float4>("background", float4(float3(0.f), 1.f));
+  m_bgImage = getParamObject<Array2D>("background");
   m_ambientRadiance = getParam<float>("ambientRadiance", 0.f);
   m_ambientColor = getParam<float3>("ambientColor", float3(1, 1, 1));
   m_pixelSamples = getParam<int>("pixelSamples", 1);
@@ -37,7 +39,25 @@ void Renderer::commitParameters()
 void Renderer::finalize()
 {
   auto r = osprayRenderer();
-  ospSetParam(r, "backgroundColor", OSP_VEC4F, &m_bgColor);
+  if (m_bgImage) {
+    if (!m_backplateTexture)
+      m_backplateTexture = ospNewTexture("texture2d");
+
+    m_bgImageColors = convertToColorArray(*m_bgImage);
+    uint32_t format = OSP_TEXTURE_RGBA32F;
+    ospSetParam(m_backplateTexture, "format", OSP_UINT, &format);
+    const auto size = m_bgImage->size();
+    auto d = ospNewSharedData2D(
+        m_bgImageColors.data(), OSP_VEC4F, size.x, size.y);
+    ospSetParam(m_backplateTexture, "data", OSP_DATA, &d);
+    ospRelease(d);
+    ospCommit(m_backplateTexture);
+    ospSetObject(r, "map_backplate", m_backplateTexture);
+    ospRemoveParam(r, "backgroundColor");
+  } else {
+    ospSetParam(r, "backgroundColor", OSP_VEC4F, &m_bgColor);
+    ospRemoveParam(r, "map_backplate");
+  }
   ospSetInt(r, "pixelSamples", m_pixelSamples);
   ospSetInt(r, "maxPathLength", m_maxPathLength);
   ospSetFloat(r, "minContribution", m_minContribution);

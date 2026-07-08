@@ -3,6 +3,7 @@
 
 #include "Camera.h"
 // specific types
+#include "Omnidirectional.h"
 #include "Orthographic.h"
 #include "Perspective.h"
 
@@ -26,6 +27,8 @@ Camera *Camera::createInstance(std::string_view type, OSPRayGlobalState *s)
     return new Perspective(s);
   else if (type == "orthographic")
     return new Orthographic(s);
+  else if (type == "omnidirectional")
+    return new Omnidirectional(s);
   else
     return (Camera *)new UnknownObject(ANARI_CAMERA, s);
 }

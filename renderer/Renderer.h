@@ -4,6 +4,7 @@
 #pragma once
 
 #include "Object.h"
+#include "array/Array2D.h"
 
 namespace anari_ospray {
 
@@ -39,7 +40,10 @@ struct Renderer : public Object
   bool m_denoiseAlpha{false};
   std::string m_denoiseQualityString;
   OSPDenoiserQuality m_denoiseQuality{OSP_DENOISER_QUALITY_MEDIUM};
+  helium::ChangeObserverPtr<Array2D> m_bgImage;
+  std::vector<float4> m_bgImageColors;
 
+  OSPTexture m_backplateTexture{nullptr};
   OSPRenderer m_osprayRenderer{nullptr};
 };
 

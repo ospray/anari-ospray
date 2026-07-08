@@ -53,6 +53,7 @@ project_sources(PRIVATE
   array/Array3D.cpp
   array/ObjectArray.cpp
   camera/Camera.cpp
+  camera/Omnidirectional.cpp
   camera/Orthographic.cpp
   camera/Perspective.cpp
   frame/Frame.cpp

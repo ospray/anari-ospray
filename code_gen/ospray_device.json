@@ -5,6 +5,7 @@
     "dependencies": [
       "anari_core_1_0",
       "anari_core_objects_base_1_0",
+      "khr_camera_omnidirectional",
       "khr_camera_orthographic",
       "khr_camera_perspective",
       "khr_geometry_cone",
@@ -26,6 +27,7 @@
       "khr_material_physically_based",
       "khr_renderer_ambient_light",
       "khr_renderer_background_color",
+      "khr_renderer_background_image",
       "khr_sampler_image1d",
       "khr_sampler_image2d",
       "khr_spatial_field_structured_regular",
