@@ -172,11 +172,17 @@ jobs:
       cmd: |
         python3 -m pip install --quiet reportlab # install reportlab into the python3 that runs ctsReport.py
         export LD_LIBRARY_PATH=$PWD/build/install/lib:$PWD/build/install/lib64:$LD_LIBRARY_PATH
-        WD="$GITHUB_WORKSPACE/cts-report"
+        BASE="$GITHUB_WORKSPACE/cts-report"
+        WD="$BASE/helide-ref"
         ./build/install/bin/anariCts generate --workdir "$WD" # generate helide ground truth
         ./build/install/bin/anariCts run ospray --workdir "$WD" || true # allow to fail
         ./build/install/bin/anariCts report "$WD" --html "$WD/cts-report.html" || true # interactive HTML report
         python3 build/install/share/anari/cts/ctsReport.py report "$WD" --pdf "$WD/cts-report.pdf" || true # allow failure
+        WD="$BASE/ospray-selfref"
+        ./build/install/bin/anariCts generate --device ospray --workdir "$WD" # ospray ground truth for helide-missing cases
+        ./build/install/bin/anariCts run ospray --workdir "$WD" || true # self-reference run, allow to fail
+        ./build/install/bin/anariCts report "$WD" --html "$WD/cts-report.html" || true
+        python3 build/install/share/anari/cts/ctsReport.py report "$WD" --pdf "$WD/cts-report.pdf" || true
       artifact-in: build-next-ubuntu22_04
       artifact-out: cts-report
       artifact-path: cts-report
@@ -189,11 +195,17 @@ jobs:
       cmd: |
         python3 -m pip install --quiet reportlab # install reportlab into the python3 that runs ctsReport.py
         export LD_LIBRARY_PATH=$PWD/build/install/lib:$PWD/build/install/lib64:$LD_LIBRARY_PATH
-        WD="$GITHUB_WORKSPACE/cts-report-scivis"
+        BASE="$GITHUB_WORKSPACE/cts-report-scivis"
+        WD="$BASE/helide-ref"
         ./build/install/bin/anariCts generate --workdir "$WD" # generate helide ground truth
         ./build/install/bin/anariCts run ospray --renderer scivis --workdir "$WD" || true # run scivis renderer, allow to fail
         ./build/install/bin/anariCts report "$WD" --html "$WD/cts-report.html" || true # interactive HTML report
         python3 build/install/share/anari/cts/ctsReport.py report "$WD" --pdf "$WD/cts-report.pdf" || true # allow failure
+        WD="$BASE/ospray-selfref"
+        ./build/install/bin/anariCts generate --device ospray --renderer scivis --workdir "$WD"
+        ./build/install/bin/anariCts run ospray --renderer scivis --workdir "$WD" || true
+        ./build/install/bin/anariCts report "$WD" --html "$WD/cts-report.html" || true
+        python3 build/install/share/anari/cts/ctsReport.py report "$WD" --pdf "$WD/cts-report.pdf" || true
       artifact-in: build-next-ubuntu22_04
       artifact-out: cts-report-scivis
       artifact-path: cts-report-scivis
