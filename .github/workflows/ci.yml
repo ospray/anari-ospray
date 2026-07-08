@@ -175,10 +175,28 @@ jobs:
         WD="$GITHUB_WORKSPACE/cts-report"
         ./build/install/bin/anariCts generate --workdir "$WD" # generate helide ground truth
         ./build/install/bin/anariCts run ospray --workdir "$WD" || true # allow to fail
+        ./build/install/bin/anariCts report "$WD" --html "$WD/cts-report.html" || true # interactive HTML report
         python3 build/install/share/anari/cts/ctsReport.py report "$WD" --pdf "$WD/cts-report.pdf" || true # allow failure
       artifact-in: build-next-ubuntu22_04
       artifact-out: cts-report
       artifact-path: cts-report
+
+  cts-scivis-ubuntu22_04:
+    needs: build-next-ubuntu22_04
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+    with:
+      image: ubuntu:22.04
+      cmd: |
+        python3 -m pip install --quiet reportlab # install reportlab into the python3 that runs ctsReport.py
+        export LD_LIBRARY_PATH=$PWD/build/install/lib:$PWD/build/install/lib64:$LD_LIBRARY_PATH
+        WD="$GITHUB_WORKSPACE/cts-report-scivis"
+        ./build/install/bin/anariCts generate --workdir "$WD" # generate helide ground truth
+        ./build/install/bin/anariCts run ospray --renderer scivis --workdir "$WD" || true # run scivis renderer, allow to fail
+        ./build/install/bin/anariCts report "$WD" --html "$WD/cts-report.html" || true # interactive HTML report
+        python3 build/install/share/anari/cts/ctsReport.py report "$WD" --pdf "$WD/cts-report.pdf" || true # allow failure
+      artifact-in: build-next-ubuntu22_04
+      artifact-out: cts-report-scivis
+      artifact-path: cts-report-scivis
 
   test-osx:
     needs: build-osx
