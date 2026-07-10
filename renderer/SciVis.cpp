@@ -12,9 +12,9 @@ SciVis::SciVis(OSPRayGlobalState *s)
 void SciVis::commitParameters()
 {
   Renderer::commitParameters();
-  m_shadows = getParam<bool>("shadows", false);
+  m_shadows = getParam<bool>("shadows", true);
   m_visibleLights = getParam<bool>("visibleLights", false);
-  m_aoSamples = getParam<int>("aoSamples", 0);
+  m_aoSamples = getParam<int>("aoSamples", 1);
   m_aoDistance = getParam<float>("aoDistance", 1e20f);
   m_volumeSamplingRate = getParam<float>("volumeSamplingRate", 1.f);
 }
