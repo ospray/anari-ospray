@@ -10,6 +10,12 @@ Omnidirectional::Omnidirectional(OSPRayGlobalState *s) : Camera(s, "panoramic") 
 void Omnidirectional::finalize()
 {
   Camera::finalize();
+  // stereo (panoramic has no depth of field)
+  ospSetParam(osprayCamera(), "stereoMode", OSP_UINT, &m_stereoMode);
+  ospSetParam(osprayCamera(),
+      "interpupillaryDistance",
+      OSP_FLOAT,
+      &m_interpupillaryDistance);
   ospCommit(osprayCamera());
 }
 

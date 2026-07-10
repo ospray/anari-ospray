@@ -8,6 +8,8 @@
       "khr_camera_omnidirectional",
       "khr_camera_orthographic",
       "khr_camera_perspective",
+      "khr_camera_depth_of_field",
+      "khr_camera_stereo",
       "khr_frame_accumulation",
       "khr_frame_channel_albedo",
       "khr_frame_channel_instance_id",

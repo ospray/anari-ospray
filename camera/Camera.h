@@ -26,6 +26,11 @@ struct Camera : public Object
   float3 m_dir{0.f, 0.f, 1.f};
   float3 m_up{0.f, 1.f, 0.f};
   float m_imgRegion[4];
+  float m_near{1e-6f};
+  float m_apertureRadius{0.f};
+  float m_focusDistance{1.f};
+  uint32_t m_stereoMode{OSP_STEREO_NONE};
+  float m_interpupillaryDistance{0.0635f};
 };
 
 } // namespace anari_ospray

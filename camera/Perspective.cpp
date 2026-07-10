@@ -19,6 +19,14 @@ void Perspective::finalize()
   Camera::finalize();
   ospSetParam(osprayCamera(), "fovy", OSP_FLOAT, &m_fovy);
   ospSetParam(osprayCamera(), "aspect", OSP_FLOAT, &m_aspect);
+  // depth of field + stereo
+  ospSetParam(osprayCamera(), "apertureRadius", OSP_FLOAT, &m_apertureRadius);
+  ospSetParam(osprayCamera(), "focusDistance", OSP_FLOAT, &m_focusDistance);
+  ospSetParam(osprayCamera(), "stereoMode", OSP_UINT, &m_stereoMode);
+  ospSetParam(osprayCamera(),
+      "interpupillaryDistance",
+      OSP_FLOAT,
+      &m_interpupillaryDistance);
   ospCommit(osprayCamera());
 }
 
