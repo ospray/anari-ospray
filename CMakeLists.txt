@@ -74,9 +74,8 @@ project_sources(PRIVATE
   scene/surface/geometry/Curves.cpp
   scene/surface/geometry/Geometry.cpp
   scene/surface/geometry/Isosurface.cpp
-  scene/surface/geometry/Quad.cpp
+  scene/surface/geometry/Mesh.cpp
   scene/surface/geometry/Sphere.cpp
-  scene/surface/geometry/Triangle.cpp
   scene/surface/material/Material.cpp
   scene/surface/material/Matte.cpp
   scene/surface/material/PBM.cpp

@@ -1,33 +1,52 @@
 // Copyright 2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-#include "Quad.h"
+#include "Mesh.h"
 // std
 #include <numeric>
 
 namespace anari_ospray {
 
-Quad::Quad(OSPRayGlobalState *s)
-    : Geometry(s, "mesh"), m_index(this), m_vertexPosition(this)
+Mesh::Mesh(OSPRayGlobalState *s, Subtype subtype)
+    : Geometry(s, "mesh"),
+      m_subtype(subtype),
+      m_index(this),
+      m_vertexPosition(this),
+      m_vertexNormal(this),
+      m_vertexAttributes{this, this, this, this, this},
+      m_faceVaryingNormal(this),
+      m_faceVaryingAttributes{this, this, this, this, this}
 {}
 
-void Quad::commitParameters()
+void Mesh::commitParameters()
 {
   Geometry::commitParameters();
   m_index = getParamObject<Array1D>("primitive.index");
   m_vertexPosition = getParamObject<Array1D>("vertex.position");
+  m_vertexNormal = getParamObject<Array1D>("vertex.normal");
   m_vertexAttributes[0] = getParamObject<Array1D>("vertex.attribute0");
   m_vertexAttributes[1] = getParamObject<Array1D>("vertex.attribute1");
   m_vertexAttributes[2] = getParamObject<Array1D>("vertex.attribute2");
   m_vertexAttributes[3] = getParamObject<Array1D>("vertex.attribute3");
   m_vertexAttributes[4] = getParamObject<Array1D>("vertex.color");
+  m_faceVaryingNormal = getParamObject<Array1D>("faceVarying.normal");
+  m_faceVaryingAttributes[0] =
+      getParamObject<Array1D>("faceVarying.attribute0");
+  m_faceVaryingAttributes[1] =
+      getParamObject<Array1D>("faceVarying.attribute1");
+  m_faceVaryingAttributes[2] =
+      getParamObject<Array1D>("faceVarying.attribute2");
+  m_faceVaryingAttributes[3] =
+      getParamObject<Array1D>("faceVarying.attribute3");
+  m_faceVaryingAttributes[4] =
+      getParamObject<Array1D>("faceVarying.color");
 }
 
-void Quad::finalize()
+void Mesh::finalize()
 {
   if (!m_vertexPosition) {
     reportMessage(ANARI_SEVERITY_WARNING,
-        "missing required parameter 'vertex.position' on quad geometry");
+        "missing required parameter 'vertex.position' on triangle/quad geometry");
     return;
   }
 
@@ -38,19 +57,31 @@ void Quad::finalize()
   // Remove old parameters //
 
   ospRemoveParam(og, "vertex.position");
+  ospRemoveParam(og, "vertex.normal");
+  ospRemoveParam(og, "normal");
   ospRemoveParam(og, "index");
 
   // Set new parameters //
 
   auto vpd = m_vertexPosition->osprayData();
   ospSetParam(og, "vertex.position", OSP_DATA, &vpd);
+  if (m_faceVaryingNormal) {
+    auto fnd = m_faceVaryingNormal->osprayData();
+    ospSetParam(og, "normal", OSP_DATA, &fnd);
+  } else if (m_vertexNormal) {
+    auto vnd = m_vertexNormal->osprayData();
+    ospSetParam(og, "vertex.normal", OSP_DATA, &vnd);
+  }
+
   if (m_index) {
     auto id = m_index->osprayData();
     ospSetParam(og, "index", OSP_DATA, &id);
   } else {
-    indices.resize(m_vertexPosition->totalSize());
+    indices.resize(m_vertexPosition->size());
     std::iota(indices.begin(), indices.end(), 0);
-    auto id = ospNewSharedData(indices.data(), OSP_VEC4UI, indices.size() / 4);
+    auto id = ospNewSharedData(indices.data(),
+        m_subtype == Subtype::TRIANGLE ? OSP_VEC3UI : OSP_VEC4UI,
+        indices.size() / (m_subtype == Subtype::TRIANGLE ? 3 : 4));
     ospSetParam(og, "index", OSP_DATA, &id);
     ospRelease(id);
   }
@@ -59,7 +90,7 @@ void Quad::finalize()
   m_indices = std::move(indices);
 }
 
-void Quad::setColorAttribute(Attribute attr, OSPGeometricModel om)
+void Mesh::setColorAttribute(Attribute attr, OSPGeometricModel om)
 {
   Geometry::setColorAttribute(attr, om);
 
@@ -67,18 +98,22 @@ void Quad::setColorAttribute(Attribute attr, OSPGeometricModel om)
 
   auto og = osprayGeometry();
   ospRemoveParam(og, "vertex.color");
+  ospRemoveParam(og, "color");
 
   if (attr != Attribute::NONE) {
     auto attrIdx = static_cast<int>(attr);
     auto &va = m_vertexAttributes[attrIdx];
+    auto &fa = m_faceVaryingAttributes[attrIdx];
 
-    if (va)
+    if (fa)
+      unpackedValues = convertToColorArray(*fa);
+    else if (va)
       unpackedValues = convertToColorArray(*va);
 
     if (!unpackedValues.empty()) {
       auto d = ospNewSharedData1D(
           unpackedValues.data(), OSP_VEC4F, unpackedValues.size());
-      ospSetParam(og, "vertex.color", OSP_DATA, &d);
+      ospSetParam(og, fa ? "color" : "vertex.color", OSP_DATA, &d);
       ospRelease(d);
     }
   }
@@ -87,7 +122,7 @@ void Quad::setColorAttribute(Attribute attr, OSPGeometricModel om)
   m_colors = std::move(unpackedValues);
 }
 
-void Quad::setTextureCoordinateAttribute(Attribute attr)
+void Mesh::setTextureCoordinateAttribute(Attribute attr)
 {
   auto og = osprayGeometry();
   ospRemoveParam(og, "vertex.texcoord");
@@ -98,9 +133,12 @@ void Quad::setTextureCoordinateAttribute(Attribute attr)
   if (attr != Attribute::NONE) {
     auto attrIdx = static_cast<int>(attr);
     auto &va = m_vertexAttributes[attrIdx];
+    auto &fa = m_faceVaryingAttributes[attrIdx];
     auto &pa = m_attributes[attrIdx];
 
-    if (va)
+    if (fa)
+      unpackedValues = convertToTexcoordArray(*fa);
+    else if (va)
       unpackedValues = convertToTexcoordArray(*va);
     else if (pa)
       unpackedValues = convertToTexcoordArray(*pa);
@@ -108,7 +146,8 @@ void Quad::setTextureCoordinateAttribute(Attribute attr)
     if (!unpackedValues.empty()) {
       auto d = ospNewSharedData1D(
           unpackedValues.data(), OSP_VEC2F, unpackedValues.size());
-      ospSetParam(og, va ? "vertex.texcoord" : "texcoord", OSP_DATA, &d);
+      ospSetParam(
+          og, va && !fa ? "vertex.texcoord" : "texcoord", OSP_DATA, &d);
       ospRelease(d);
     }
   }

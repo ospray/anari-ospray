@@ -27,7 +27,7 @@ struct Curves : public Geometry
   void setTextureCoordinateAttribute(Attribute attr) override;
 
  private:
-  Subtype m_subtype;
+  const Subtype m_subtype;
   helium::ChangeObserverPtr<Array1D> m_index;
   helium::ChangeObserverPtr<Array1D> m_vertexPosition;
   helium::ChangeObserverPtr<Array1D> m_radius;

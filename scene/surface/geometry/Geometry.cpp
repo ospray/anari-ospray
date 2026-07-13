@@ -5,9 +5,8 @@
 // subtypes
 #include "Curves.h"
 #include "Isosurface.h"
-#include "Quad.h"
+#include "Mesh.h"
 #include "Sphere.h"
-#include "Triangle.h"
 // std
 #include <cstring>
 #include <limits>
@@ -37,11 +36,11 @@ Geometry *Geometry::createInstance(
   else if (subtype == "isosurface")
     return new Isosurface(s);
   else if (subtype == "quad")
-    return new Quad(s);
+    return new Mesh(s, Mesh::Subtype::QUAD);
   else if (subtype == "sphere")
     return new Sphere(s);
   else if (subtype == "triangle")
-    return new Triangle(s);
+    return new Mesh(s, Mesh::Subtype::TRIANGLE);
   else
     return (Geometry *)new UnknownObject(ANARI_GEOMETRY, s);
 }

@@ -7,9 +7,17 @@
 
 namespace anari_ospray {
 
-struct Triangle : public Geometry
+// Unified mapping of the ANARI triangle/quad geometries onto OSPRay's 'mesh'
+// geometry (they only differ in their primitive size).
+struct Mesh : public Geometry
 {
-  Triangle(OSPRayGlobalState *s);
+  enum class Subtype
+  {
+    TRIANGLE,
+    QUAD
+  };
+
+  Mesh(OSPRayGlobalState *s, Subtype subtype);
 
   void commitParameters() override;
   void finalize() override;
@@ -18,9 +26,13 @@ struct Triangle : public Geometry
   void setTextureCoordinateAttribute(Attribute attr) override;
 
  private:
+  const Subtype m_subtype;
   helium::ChangeObserverPtr<Array1D> m_index;
   helium::ChangeObserverPtr<Array1D> m_vertexPosition;
-  std::array<helium::IntrusivePtr<Array1D>, 5> m_vertexAttributes;
+  helium::ChangeObserverPtr<Array1D> m_vertexNormal;
+  std::array<helium::ChangeObserverPtr<Array1D>, 5> m_vertexAttributes;
+  helium::ChangeObserverPtr<Array1D> m_faceVaryingNormal;
+  std::array<helium::ChangeObserverPtr<Array1D>, 5> m_faceVaryingAttributes;
 
   std::vector<uint32_t> m_indices;
   std::vector<float4> m_colors;
