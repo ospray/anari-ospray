@@ -14,6 +14,8 @@ struct Matte : public Material
   void finalize() override;
 
  private:
+  helium::ChangeObserverPtr<Sampler> m_opacitySampler;
+  std::string m_alphaMode{"opaque"};
   float m_opacity{1.f};
 };
 
