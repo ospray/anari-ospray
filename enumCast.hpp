@@ -87,7 +87,17 @@ inline OSPDataType enumCast(int value)
   case ANARI_STRING:
     return OSP_STRING;
   case ANARI_INT8:
+  case ANARI_FIXED8:
     return OSP_CHAR;
+  case ANARI_INT8_VEC2:
+  case ANARI_FIXED8_VEC2:
+    return OSP_VEC2C;
+  case ANARI_INT8_VEC3:
+  case ANARI_FIXED8_VEC3:
+    return OSP_VEC3C;
+  case ANARI_INT8_VEC4:
+  case ANARI_FIXED8_VEC4:
+    return OSP_VEC4C;
   case ANARI_UINT8:
   case ANARI_UFIXED8:
     return OSP_UCHAR;
@@ -101,48 +111,86 @@ inline OSPDataType enumCast(int value)
   case ANARI_UFIXED8_VEC4:
     return OSP_VEC4UC;
   case ANARI_INT16:
+  case ANARI_FIXED16:
     return OSP_SHORT;
+  case ANARI_INT16_VEC2:
+  case ANARI_FIXED16_VEC2:
+    return OSP_VEC2S;
+  case ANARI_INT16_VEC3:
+  case ANARI_FIXED16_VEC3:
+    return OSP_VEC3S;
+  case ANARI_INT16_VEC4:
+  case ANARI_FIXED16_VEC4:
+    return OSP_VEC4S;
   case ANARI_UINT16:
+  case ANARI_UFIXED16:
     return OSP_USHORT;
   case ANARI_UINT16_VEC2:
+  case ANARI_UFIXED16_VEC2:
     return OSP_VEC2US;
   case ANARI_UINT16_VEC3:
+  case ANARI_UFIXED16_VEC3:
     return OSP_VEC3US;
   case ANARI_UINT16_VEC4:
+  case ANARI_UFIXED16_VEC4:
     return OSP_VEC4US;
   case ANARI_INT32:
+  case ANARI_FIXED32:
     return OSP_INT;
   case ANARI_INT32_VEC2:
+  case ANARI_FIXED32_VEC2:
     return OSP_VEC2I;
   case ANARI_INT32_VEC3:
+  case ANARI_FIXED32_VEC3:
     return OSP_VEC3I;
   case ANARI_INT32_VEC4:
+  case ANARI_FIXED32_VEC4:
     return OSP_VEC4I;
   case ANARI_UINT32:
+  case ANARI_UFIXED32:
   case ANARI_DATA_TYPE:
     return OSP_UINT;
   case ANARI_UINT32_VEC2:
+  case ANARI_UFIXED32_VEC2:
     return OSP_VEC2UI;
   case ANARI_UINT32_VEC3:
+  case ANARI_UFIXED32_VEC3:
     return OSP_VEC3UI;
   case ANARI_UINT32_VEC4:
+  case ANARI_UFIXED32_VEC4:
     return OSP_VEC4UI;
   case ANARI_INT64:
+  case ANARI_FIXED64:
     return OSP_LONG;
   case ANARI_INT64_VEC2:
+  case ANARI_FIXED64_VEC2:
     return OSP_VEC2L;
   case ANARI_INT64_VEC3:
+  case ANARI_FIXED64_VEC3:
     return OSP_VEC3L;
   case ANARI_INT64_VEC4:
+  case ANARI_FIXED64_VEC4:
     return OSP_VEC4L;
   case ANARI_UINT64:
+  case ANARI_UFIXED64:
     return OSP_ULONG;
   case ANARI_UINT64_VEC2:
+  case ANARI_UFIXED64_VEC2:
     return OSP_VEC2UL;
   case ANARI_UINT64_VEC3:
+  case ANARI_UFIXED64_VEC3:
     return OSP_VEC3UL;
   case ANARI_UINT64_VEC4:
+  case ANARI_UFIXED64_VEC4:
     return OSP_VEC4UL;
+  case ANARI_FLOAT16:
+    return OSP_HALF;
+  case ANARI_FLOAT16_VEC2:
+    return OSP_VEC2H;
+  case ANARI_FLOAT16_VEC3:
+    return OSP_VEC3H;
+  case ANARI_FLOAT16_VEC4:
+    return OSP_VEC4H;
   case ANARI_FLOAT32:
     return OSP_FLOAT;
   case ANARI_FLOAT32_VEC2:
@@ -153,6 +201,12 @@ inline OSPDataType enumCast(int value)
     return OSP_VEC4F;
   case ANARI_FLOAT64:
     return OSP_DOUBLE;
+  case ANARI_FLOAT64_VEC2:
+    return OSP_VEC2D;
+  case ANARI_FLOAT64_VEC3:
+    return OSP_VEC3D;
+  case ANARI_FLOAT64_VEC4:
+    return OSP_VEC4D;
   case ANARI_INT32_BOX1:
     return OSP_BOX1I;
   case ANARI_INT32_BOX2:
@@ -177,6 +231,8 @@ inline OSPDataType enumCast(int value)
     return OSP_AFFINE2F;
   case ANARI_FLOAT32_MAT3x4:
     return OSP_AFFINE3F;
+  case ANARI_FLOAT32_QUAT_IJKW:
+    return OSP_QUATF;
   case ANARI_UNKNOWN:
     return OSP_UNKNOWN;
   default:
@@ -195,18 +251,28 @@ inline OSPTextureFormat enumCast(int value)
     return OSP_TEXTURE_SRGBA;
   case ANARI_FLOAT32_VEC4:
     return OSP_TEXTURE_RGBA32F;
+  case ANARI_FLOAT16_VEC4:
+    return OSP_TEXTURE_RGBA16F;
   case ANARI_UFIXED8_VEC3:
     return OSP_TEXTURE_RGB8;
   case ANARI_UFIXED8_RGB_SRGB:
     return OSP_TEXTURE_SRGB;
   case ANARI_FLOAT32_VEC3:
     return OSP_TEXTURE_RGB32F;
+  case ANARI_FLOAT16_VEC3:
+    return OSP_TEXTURE_RGB16F;
   case ANARI_UFIXED8:
     return OSP_TEXTURE_R8;
   case ANARI_FLOAT32:
     return OSP_TEXTURE_R32F;
+  case ANARI_FLOAT16:
+    return OSP_TEXTURE_R16F;
   case ANARI_UFIXED8_VEC2:
     return OSP_TEXTURE_RA8;
+  case ANARI_FLOAT32_VEC2:
+    return OSP_TEXTURE_RA32F;
+  case ANARI_FLOAT16_VEC2:
+    return OSP_TEXTURE_RA16F;
   case ANARI_UFIXED16_VEC4:
     return OSP_TEXTURE_RGBA16;
   case ANARI_UFIXED16_VEC3:
