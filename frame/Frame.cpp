@@ -32,7 +32,8 @@ Frame::~Frame()
 
 bool Frame::isValid() const
 {
-  return m_valid;
+  return m_renderer && m_renderer->isValid() && m_camera && m_camera->isValid()
+      && m_world && m_world->isValid();
 }
 
 OSPRayGlobalState *Frame::deviceState() const
@@ -95,9 +96,6 @@ void Frame::finalize()
     reportMessage(
         ANARI_SEVERITY_WARNING, "missing required parameter 'world' on frame");
   }
-
-  m_valid = m_renderer && m_renderer->isValid() && m_camera
-      && m_camera->isValid() && m_world && m_world->isValid();
 
   initFB(m_renderer && m_renderer->denoise());
 }

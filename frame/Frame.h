@@ -47,7 +47,6 @@ struct Frame : public helium::BaseFrame
 
  private:
   void initFB(const bool denoising);
-  bool m_valid{false};
 
   struct FrameData
   {
