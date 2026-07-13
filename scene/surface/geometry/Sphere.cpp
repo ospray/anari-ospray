@@ -9,7 +9,8 @@ Sphere::Sphere(OSPRayGlobalState *s)
     : Geometry(s, "sphere"),
       m_index(this),
       m_vertexPosition(this),
-      m_vertexRadius(this)
+      m_vertexRadius(this),
+      m_vertexAttributes{this, this, this, this, this}
 {}
 
 void Sphere::commitParameters()
@@ -18,11 +19,11 @@ void Sphere::commitParameters()
   m_index = getParamObject<Array1D>("primitive.index");
   m_vertexPosition = getParamObject<Array1D>("vertex.position");
   m_vertexRadius = getParamObject<Array1D>("vertex.radius");
-  m_attributes[0] = getParamObject<Array1D>("vertex.attribute0");
-  m_attributes[1] = getParamObject<Array1D>("vertex.attribute1");
-  m_attributes[2] = getParamObject<Array1D>("vertex.attribute2");
-  m_attributes[3] = getParamObject<Array1D>("vertex.attribute3");
-  m_attributes[4] = getParamObject<Array1D>("vertex.color");
+  m_vertexAttributes[0] = getParamObject<Array1D>("vertex.attribute0");
+  m_vertexAttributes[1] = getParamObject<Array1D>("vertex.attribute1");
+  m_vertexAttributes[2] = getParamObject<Array1D>("vertex.attribute2");
+  m_vertexAttributes[3] = getParamObject<Array1D>("vertex.attribute3");
+  m_vertexAttributes[4] = getParamObject<Array1D>("vertex.color");
   m_globalRadius = getParam<float>("radius", 0.01f);
 }
 
@@ -33,10 +34,6 @@ void Sphere::finalize()
         "missing required parameter 'vertex.position' on sphere geometry");
     return;
   }
-
-  const float *radius = nullptr;
-  if (m_vertexRadius)
-    radius = m_vertexRadius->beginAs<float>();
 
   auto og = osprayGeometry();
 
@@ -57,24 +54,55 @@ void Sphere::finalize()
   ospCommit(og);
 }
 
+void Sphere::setColorAttribute(Attribute attr, OSPGeometricModel om)
+{
+  ospRemoveParam(om, "color");
+
+  std::vector<float4> unpackedValues;
+
+  if (attr != Attribute::NONE) {
+    const auto attrIdx = static_cast<int>(attr);
+    const auto &va = m_vertexAttributes[attrIdx];
+    const auto &pa = m_attributes[attrIdx];
+
+    if (va)
+      unpackedValues = convertToColorArray(*va);
+    else if (pa)
+      unpackedValues = convertToColorArray(*pa);
+
+    if (!unpackedValues.empty()) {
+      const auto d = ospNewSharedData1D(
+          unpackedValues.data(), OSP_VEC4F, unpackedValues.size());
+      ospSetParam(om, "color", OSP_DATA, &d);
+      ospRelease(d);
+    }
+  }
+
+  m_primitiveColors = std::move(unpackedValues);
+}
+
 void Sphere::setTextureCoordinateAttribute(Attribute attr)
 {
   auto og = osprayGeometry();
   ospRemoveParam(og, "vertex.texcoord");
+  ospRemoveParam(og, "sphere.texcoord");
 
   std::vector<float2> unpackedValues;
 
   if (attr != Attribute::NONE) {
-    auto attrIdx = static_cast<int>(attr);
-    auto &va = m_attributes[attrIdx];
+    const auto attrIdx = static_cast<int>(attr);
+    const auto &va = m_vertexAttributes[attrIdx];
+    const auto &pa = m_attributes[attrIdx];
 
     if (va)
       unpackedValues = convertToTexcoordArray(*va);
+    else if (pa)
+      unpackedValues = convertToTexcoordArray(*pa);
 
     if (!unpackedValues.empty()) {
-      auto d = ospNewSharedData1D(
+      const auto d = ospNewSharedData1D(
           unpackedValues.data(), OSP_VEC2F, unpackedValues.size());
-      ospSetParam(og, "vertex.texcoord", OSP_DATA, &d);
+      ospSetParam(og, "sphere.texcoord", OSP_DATA, &d);
       ospRelease(d);
     }
   }
