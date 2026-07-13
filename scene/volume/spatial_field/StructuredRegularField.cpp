@@ -41,4 +41,9 @@ bool StructuredRegularField::isValid() const
   return m_data;
 }
 
+ANARIDataType StructuredRegularField::elementType() const
+{
+  return m_data ? m_data->elementType() : ANARI_UNKNOWN;
+}
+
 } // namespace anari_ospray

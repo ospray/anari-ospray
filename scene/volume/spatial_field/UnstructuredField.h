@@ -17,6 +17,9 @@ struct UnstructuredField : public SpatialField
 
   bool isValid() const override;
 
+ protected:
+  ANARIDataType elementType() const override;
+
  private:
   helium::IntrusivePtr<Array1D> m_vertex_position;
   helium::IntrusivePtr<Array1D> m_vertex_data;

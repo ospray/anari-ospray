@@ -20,7 +20,7 @@ struct TransferFunction1DVolume : public Volume
   bool isValid() const override;
 
  private:
-  helium::IntrusivePtr<SpatialField> m_field;
+  helium::ChangeObserverPtr<SpatialField> m_field;
   helium::ChangeObserverPtr<Array1D> m_colorData;
   helium::ChangeObserverPtr<Array1D> m_opacityData;
   float2 m_valueRange{0.f, 1.f};

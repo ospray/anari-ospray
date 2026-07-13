@@ -19,6 +19,9 @@ struct AMRField : public SpatialField
 
   bool isValid() const override;
 
+ protected:
+  ANARIDataType elementType() const override;
+
  private:
   helium::IntrusivePtr<Array1D> m_cellWidth;
   helium::IntrusivePtr<Array1D> m_block_bounds;

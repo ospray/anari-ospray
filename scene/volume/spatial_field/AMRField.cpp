@@ -98,4 +98,23 @@ bool AMRField::isValid() const
   return m_block_data && m_block_bounds && m_block_level && m_cellWidth;
 }
 
+ANARIDataType AMRField::elementType() const
+{
+  if (!m_block_data)
+    return ANARI_UNKNOWN;
+
+  auto **it = m_block_data->handlesBegin();
+  const auto *first = dynamic_cast<const Array *>(*it);
+  if (!first)
+    return ANARI_UNKNOWN;
+
+  const auto type = first->elementType();
+  for (++it; it != m_block_data->handlesEnd(); ++it) {
+    const auto *a = dynamic_cast<const Array *>(*it);
+    if (!a || a->elementType() != type)
+      return ANARI_UNKNOWN;
+  }
+  return type;
+}
+
 } // namespace anari_ospray

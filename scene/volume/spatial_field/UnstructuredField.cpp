@@ -52,16 +52,19 @@ void UnstructuredField::finalize()
   if (m_vertex_data) {
     auto ovd = m_vertex_data->osprayData();
     ospSetParam(ov, "vertex.data", OSP_DATA, &ovd);
+    ospRemoveParam(ov, "cell.data");
+  } else {
+    ospRemoveParam(ov, "vertex.data");
+    if (m_cell_data) {
+      auto ocd = m_cell_data->osprayData();
+      ospSetParam(ov, "cell.data", OSP_DATA, &ocd);
+    }
   }
   auto oi = m_index->osprayData();
   ospSetParam(ov, "index", OSP_DATA, &oi);
   if (m_cell_index) {
     auto oci = m_cell_index->osprayData();
     ospSetParam(ov, "cell.index", OSP_DATA, &oci);
-  }
-  if (m_cell_data) {
-    auto ocd = m_cell_data->osprayData();
-    ospSetParam(ov, "cell.data", OSP_DATA, &ocd);
   }
   if (m_cell_type) {
     auto oct = m_cell_type->osprayData();
@@ -82,6 +85,15 @@ bool UnstructuredField::isValid() const
   else
     return haveData && m_vertex_position && m_index && m_cell_index
         && m_cell_type;
+}
+
+ANARIDataType UnstructuredField::elementType() const
+{
+  if (m_vertex_data)
+    return m_vertex_data->elementType();
+  if (m_cell_data)
+    return m_cell_data->elementType();
+  return ANARI_UNKNOWN;
 }
 
 } // namespace anari_ospray

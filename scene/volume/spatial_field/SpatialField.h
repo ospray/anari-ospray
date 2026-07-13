@@ -15,8 +15,11 @@ struct SpatialField : public Object
       std::string_view subtype, OSPRayGlobalState *d);
 
   OSPVolume osprayVolume() const;
+  float valueRangeScale() const;
 
  protected:
+  virtual ANARIDataType elementType() const;
+
   OSPVolume m_osprayVolume{nullptr};
 };
 

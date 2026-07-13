@@ -17,6 +17,9 @@ struct StructuredRegularField : public SpatialField
 
   bool isValid() const override;
 
+ protected:
+  ANARIDataType elementType() const override;
+
  private:
   helium::IntrusivePtr<Array3D> m_data;
   float3 m_origin{0.f};
