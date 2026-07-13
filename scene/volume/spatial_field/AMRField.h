@@ -23,15 +23,16 @@ struct AMRField : public SpatialField
   ANARIDataType elementType() const override;
 
  private:
-  helium::IntrusivePtr<Array1D> m_cellWidth;
-  helium::IntrusivePtr<Array1D> m_block_bounds;
-  helium::IntrusivePtr<Array1D> m_block_level;
-  helium::IntrusivePtr<ObjectArray> m_block_data;
+  helium::ChangeObserverPtr<Array1D> m_cellWidth;
+  helium::ChangeObserverPtr<Array1D> m_block_bounds;
+  helium::ChangeObserverPtr<Array1D> m_block_level;
+  helium::ChangeObserverPtr<ObjectArray> m_block_data;
 
   float3 m_origin{0.f};
   float3 m_spacing{1.f};
   OSPAMRMethod m_method{OSP_AMR_CURRENT};
 
+  std::vector<helium::ChangeObserverPtr<Array>> m_blockDataObservers;
   std::vector<OSPData> m_extracted_block_data;
   OSPData m_ospray_block_data{nullptr};
 };

@@ -27,7 +27,7 @@ struct Material : public Object
   float3 m_color{1.f, 1.f, 1.f};
   Attribute m_colorAttribute{Attribute::NONE};
   Attribute m_texcoordAttribute{Attribute::NONE};
-  helium::IntrusivePtr<Sampler> m_colorSampler;
+  helium::ChangeObserverPtr<Sampler> m_colorSampler;
 
   OSPMaterial m_osprayMaterial{nullptr};
 };
@@ -51,7 +51,7 @@ inline Attribute Material::texcoordAttribute() const
 
 inline const Sampler *Material::colorSampler() const
 {
-  return m_colorSampler.ptr;
+  return m_colorSampler.get();
 }
 
 } // namespace anari_ospray

@@ -9,7 +9,7 @@
 namespace anari_ospray {
 
 Material::Material(OSPRayGlobalState *s, const char *osptype)
-    : Object(ANARI_MATERIAL, s)
+    : Object(ANARI_MATERIAL, s), m_colorSampler(this)
 {
   m_osprayMaterial = ospNewMaterial(osptype);
 }

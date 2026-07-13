@@ -20,7 +20,13 @@ static OSPAMRMethod amrMethodFromString(const std::string &str)
 
 // AMRField definitions ///////////////////////////////////////////////////////
 
-AMRField::AMRField(OSPRayGlobalState *d) : SpatialField(d, "amr") {}
+AMRField::AMRField(OSPRayGlobalState *d)
+    : SpatialField(d, "amr"),
+      m_cellWidth(this),
+      m_block_bounds(this),
+      m_block_level(this),
+      m_block_data(this)
+{}
 
 AMRField::~AMRField()
 {
@@ -65,11 +71,22 @@ void AMRField::finalize()
 
   std::vector<OSPData> extracted_block_data;
 
-  std::for_each(
-      m_block_data->handlesBegin(), m_block_data->handlesEnd(), [&](Object *o) {
-        auto *a = (Array3D *)o;
-        extracted_block_data.push_back(a->osprayData());
-      });
+  // ObjectArray doesn't observe elements; observe each block array directly.
+  // Build into a temporary, swap in on success to keep old state on failure.
+  std::vector<helium::ChangeObserverPtr<Array>> blockDataObservers;
+
+  for (auto **it = m_block_data->handlesBegin();
+      it != m_block_data->handlesEnd();
+      ++it) {
+    auto *a = dynamic_cast<Array *>(*it);
+    if (!a) {
+      reportMessage(ANARI_SEVERITY_WARNING,
+          "'block.data' on 'amr' field contains a non-array object");
+      return;
+    }
+    extracted_block_data.push_back(a->osprayData());
+    blockDataObservers.emplace_back(this, a);
+  }
 
   auto ospray_block_data = ospNewSharedData(
       extracted_block_data.data(), OSP_DATA, extracted_block_data.size());
@@ -91,6 +108,7 @@ void AMRField::finalize()
   ospRelease(m_ospray_block_data);
   m_extracted_block_data = std::move(extracted_block_data);
   m_ospray_block_data = ospray_block_data;
+  m_blockDataObservers = std::move(blockDataObservers);
 }
 
 bool AMRField::isValid() const

@@ -14,7 +14,7 @@
 namespace anari_ospray {
 
 Geometry::Geometry(OSPRayGlobalState *s, const char *osptype)
-    : Object(ANARI_GEOMETRY, s)
+    : Object(ANARI_GEOMETRY, s), m_attributes{this, this, this, this, this}
 {
   m_osprayGeometry = ospNewGeometry(osptype);
 }

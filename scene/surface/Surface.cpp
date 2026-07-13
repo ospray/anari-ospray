@@ -6,7 +6,7 @@
 namespace anari_ospray {
 
 Surface::Surface(OSPRayGlobalState *s)
-    : Object(ANARI_SURFACE, s), m_geometry(this)
+    : Object(ANARI_SURFACE, s), m_geometry(this), m_material(this)
 {
   m_osprayModel = ospNewGeometricModel();
 }
@@ -77,7 +77,7 @@ const Geometry *Surface::geometry() const
 
 const Material *Surface::material() const
 {
-  return m_material.ptr;
+  return m_material.get();
 }
 
 OSPGeometricModel Surface::osprayModel() const

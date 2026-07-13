@@ -21,7 +21,7 @@ struct StructuredRegularField : public SpatialField
   ANARIDataType elementType() const override;
 
  private:
-  helium::IntrusivePtr<Array3D> m_data;
+  helium::ChangeObserverPtr<Array3D> m_data;
   float3 m_origin{0.f};
   float3 m_spacing{1.f};
 };

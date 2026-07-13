@@ -21,12 +21,12 @@ struct UnstructuredField : public SpatialField
   ANARIDataType elementType() const override;
 
  private:
-  helium::IntrusivePtr<Array1D> m_vertex_position;
-  helium::IntrusivePtr<Array1D> m_vertex_data;
-  helium::IntrusivePtr<Array1D> m_index;
-  helium::IntrusivePtr<Array1D> m_cell_index;
-  helium::IntrusivePtr<Array1D> m_cell_data;
-  helium::IntrusivePtr<Array1D> m_cell_type;
+  helium::ChangeObserverPtr<Array1D> m_vertex_position;
+  helium::ChangeObserverPtr<Array1D> m_vertex_data;
+  helium::ChangeObserverPtr<Array1D> m_index;
+  helium::ChangeObserverPtr<Array1D> m_cell_index;
+  helium::ChangeObserverPtr<Array1D> m_cell_data;
+  helium::ChangeObserverPtr<Array1D> m_cell_type;
   bool m_indexPrefixed{false};
 
   bool m_hexIterative{false};

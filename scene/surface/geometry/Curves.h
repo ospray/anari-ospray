@@ -31,7 +31,7 @@ struct Curves : public Geometry
   helium::ChangeObserverPtr<Array1D> m_index;
   helium::ChangeObserverPtr<Array1D> m_vertexPosition;
   helium::ChangeObserverPtr<Array1D> m_radius;
-  std::array<helium::IntrusivePtr<Array1D>, 5> m_vertexAttributes;
+  std::array<helium::ChangeObserverPtr<Array1D>, 5> m_vertexAttributes;
   float m_globalRadius{1.f};
 
   std::vector<float4> m_osprayVertexRadius;

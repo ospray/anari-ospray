@@ -13,7 +13,8 @@ Curves::Curves(OSPRayGlobalState *s, Subtype subtype)
       m_subtype(subtype),
       m_index(this),
       m_vertexPosition(this),
-      m_radius(this)
+      m_radius(this),
+      m_vertexAttributes{this, this, this, this, this}
 {}
 
 void Curves::commitParameters()

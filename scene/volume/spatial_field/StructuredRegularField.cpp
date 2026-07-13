@@ -8,7 +8,7 @@
 namespace anari_ospray {
 
 StructuredRegularField::StructuredRegularField(OSPRayGlobalState *d)
-    : SpatialField(d, "structuredRegular")
+    : SpatialField(d, "structuredRegular"), m_data(this)
 {}
 
 void StructuredRegularField::commitParameters()

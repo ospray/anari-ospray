@@ -8,7 +8,13 @@ namespace anari_ospray {
 // UnstructuredField definitions //////////////////////////////////////////////
 
 UnstructuredField::UnstructuredField(OSPRayGlobalState *d)
-    : SpatialField(d, "unstructured")
+    : SpatialField(d, "unstructured"),
+      m_vertex_position(this),
+      m_vertex_data(this),
+      m_index(this),
+      m_cell_index(this),
+      m_cell_data(this),
+      m_cell_type(this)
 {}
 
 void UnstructuredField::commitParameters()

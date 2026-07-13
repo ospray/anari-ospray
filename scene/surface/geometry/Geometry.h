@@ -27,7 +27,7 @@ struct Geometry : public Object
 
  protected:
   OSPGeometry m_osprayGeometry{nullptr};
-  std::array<helium::IntrusivePtr<Array1D>, 5> m_attributes;
+  std::array<helium::ChangeObserverPtr<Array1D>, 5> m_attributes;
   std::vector<float4> m_primitiveColors;
 };
 
