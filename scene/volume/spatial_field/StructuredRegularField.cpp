@@ -7,6 +7,20 @@
 
 namespace anari_ospray {
 
+// Helper functions ///////////////////////////////////////////////////////////
+
+static OSPVolumeFilter filterFromString(const std::string &str)
+{
+  if (str == "nearest")
+    return OSP_VOLUME_FILTER_NEAREST;
+  else if (str == "cubic")
+    return OSP_VOLUME_FILTER_CUBIC;
+  else
+    return OSP_VOLUME_FILTER_LINEAR;
+}
+
+// StructuredRegularField definitions //////////////////////////////////////////
+
 StructuredRegularField::StructuredRegularField(OSPRayGlobalState *d)
     : SpatialField(d, "structuredRegular"), m_data(this)
 {}
@@ -16,6 +30,7 @@ void StructuredRegularField::commitParameters()
   m_data = getParamObject<Array3D>("data");
   m_origin = getParam<float3>("origin", float3(0.f));
   m_spacing = getParam<float3>("spacing", float3(1.f));
+  m_filter = filterFromString(getParamString("filter", "linear"));
 }
 
 void StructuredRegularField::finalize()
@@ -31,7 +46,7 @@ void StructuredRegularField::finalize()
   ospSetParam(ov, "gridSpacing", OSP_VEC3F, &m_spacing);
   auto od = m_data->osprayData();
   ospSetParam(ov, "data", OSP_DATA, &od);
-  auto filter = OSP_VOLUME_FILTER_LINEAR;
+  auto filter = m_filter;
   ospSetParam(ov, "filter", OSP_UINT, &filter);
   ospCommit(ov);
 }

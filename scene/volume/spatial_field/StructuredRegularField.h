@@ -24,6 +24,7 @@ struct StructuredRegularField : public SpatialField
   helium::ChangeObserverPtr<Array3D> m_data;
   float3 m_origin{0.f};
   float3 m_spacing{1.f};
+  OSPVolumeFilter m_filter{OSP_VOLUME_FILTER_LINEAR};
 };
 
 } // namespace anari_ospray
