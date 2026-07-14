@@ -5,6 +5,8 @@
 // subtypes
 #include "Matte.h"
 #include "PBM.h"
+// std
+#include <string>
 
 namespace anari_ospray {
 
@@ -33,6 +35,22 @@ Material *Material::createInstance(
 OSPMaterial Material::osprayMaterial() const
 {
   return m_osprayMaterial;
+}
+
+void Material::setSamplerMap(
+    OSPMaterial om, const char *mapName, const Sampler *s)
+{
+  if (s && s->isValid()) {
+    auto tex = s->osprayTexture();
+    ospSetParam(om, mapName, OSP_TEXTURE, &tex);
+    s->applyInTransform(om, mapName);
+  } else {
+    const auto transformName = std::string(mapName) + ".transform";
+    const auto translationName = std::string(mapName) + ".translation";
+    ospRemoveParam(om, mapName);
+    ospRemoveParam(om, transformName.c_str());
+    ospRemoveParam(om, translationName.c_str());
+  }
 }
 
 } // namespace anari_ospray

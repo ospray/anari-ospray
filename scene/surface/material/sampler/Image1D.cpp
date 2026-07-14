@@ -23,6 +23,7 @@ void Image1D::commitParameters()
   m_inAttribute =
       attributeFromString(getParamString("inAttribute", "attribute0"));
   m_filter = getParamString("filter", "linear");
+  m_wrapMode = wrapModeFromString(getParamString("wrapMode", "clampToEdge"));
 }
 
 void Image1D::finalize()
@@ -39,8 +40,10 @@ void Image1D::finalize()
   auto filter = m_filter == "nearest" ? OSP_TEXTURE_FILTER_NEAREST
                                       : OSP_TEXTURE_FILTER_LINEAR;
   ospSetParam(ot, "filter", OSP_UINT, &filter);
+  ospSetParam(ot, "wrapMode", OSP_UINT, &m_wrapMode);
 
   auto unpackedColors = convertToColorArray(*m_image);
+  applyOutTransform(unpackedColors);
   auto d = ospNewSharedData1D(
       unpackedColors.data(), OSP_VEC4F, unpackedColors.size());
   ospSetParam(ot, "data", OSP_DATA, &d);

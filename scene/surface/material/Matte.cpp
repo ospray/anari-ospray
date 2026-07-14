@@ -17,19 +17,14 @@ void Matte::commitParameters()
 
 void Matte::finalize()
 {
-  OSPTexture ot = nullptr;
-  if (m_colorSampler && m_colorSampler->isValid()) {
+  if (m_colorSampler && m_colorSampler->isValid())
     m_texcoordAttribute = m_colorSampler->inAttribute();
-    ot = m_colorSampler->osprayTexture();
-  } else
+  else
     m_texcoordAttribute = Attribute::NONE;
 
   auto om = osprayMaterial();
   ospSetParam(om, "kd", OSP_VEC3F, &m_color);
-  if (ot)
-    ospSetParam(om, "map_kd", OSP_TEXTURE, &ot);
-  else
-    ospRemoveParam(om, "map_kd");
+  setSamplerMap(om, "map_kd", m_colorSampler.get());
 
   ospSetParam(om, "d", OSP_FLOAT, &m_opacity);
 

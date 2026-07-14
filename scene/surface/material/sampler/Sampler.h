@@ -4,6 +4,9 @@
 #pragma once
 
 #include "Object.h"
+// std
+#include <string>
+#include <vector>
 
 namespace anari_ospray {
 
@@ -17,11 +20,28 @@ struct Sampler : public Object
   static Sampler *createInstance(
       std::string_view subtype, OSPRayGlobalState *d);
 
+  void commitParameters() override;
+
   OSPTexture osprayTexture() const;
   virtual Attribute inAttribute() const = 0;
 
+  // 'inTransform'/'inOffset' -> material map slot (e.g. "map_baseColor")
+  void applyInTransform(OSPMaterial om, const char *mapName) const;
+
  protected:
+  static uint32_t wrapModeFromString(const std::string &str);
+
+  // bake 'outTransform'/'outOffset' into texels (affine commutes with filtering)
+  void applyOutTransform(std::vector<float4> &colors) const;
+
   OSPTexture m_osprayTexture{nullptr};
+
+  mat4 m_inTransform{linalg::identity};
+  float4 m_inOffset{0.f};
+  mat4 m_outTransform{linalg::identity};
+  float4 m_outOffset{0.f};
+  bool m_hasInTransform{false};
+  bool m_hasOutTransform{false};
 };
 
 } // namespace anari_ospray

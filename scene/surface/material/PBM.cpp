@@ -31,19 +31,14 @@ void PBM::commitParameters()
 
 void PBM::finalize()
 {
-  OSPTexture ot = nullptr;
-  if (m_colorSampler && m_colorSampler->isValid()) {
+  if (m_colorSampler && m_colorSampler->isValid())
     m_texcoordAttribute = m_colorSampler->inAttribute();
-    ot = m_colorSampler->osprayTexture();
-  } else
+  else
     m_texcoordAttribute = Attribute::NONE;
 
   auto om = osprayMaterial();
   ospSetParam(om, "baseColor", OSP_VEC3F, &m_color);
-  if (ot)
-    ospSetParam(om, "map_baseColor", OSP_TEXTURE, &ot);
-  else
-    ospRemoveParam(om, "map_baseColor");
+  setSamplerMap(om, "map_baseColor", m_colorSampler.get());
   ospSetParam(om, "opacity", OSP_FLOAT, &m_opacity);
   ospSetParam(om, "metallic", OSP_FLOAT, &m_metallic);
   ospSetParam(om, "roughness", OSP_FLOAT, &m_roughness);

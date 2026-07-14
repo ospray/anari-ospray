@@ -24,6 +24,10 @@ struct Material : public Object
   OSPMaterial osprayMaterial() const;
 
  protected:
+  // bind sampler texture + input transform to map slot, or clear if null/invalid
+  static void setSamplerMap(
+      OSPMaterial om, const char *mapName, const Sampler *s);
+
   float3 m_color{1.f, 1.f, 1.f};
   Attribute m_colorAttribute{Attribute::NONE};
   Attribute m_texcoordAttribute{Attribute::NONE};

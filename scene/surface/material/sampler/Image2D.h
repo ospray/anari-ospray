@@ -22,6 +22,8 @@ struct Image2D : public Sampler
   helium::ChangeObserverPtr<Array2D> m_image;
   Attribute m_inAttribute{Attribute::NONE};
   std::string m_filter;
+  uint32_t m_wrapMode[2]{
+      OSP_TEXTURE_WRAP_CLAMP_TO_EDGE, OSP_TEXTURE_WRAP_CLAMP_TO_EDGE};
   std::vector<float4> m_unpackedColors;
 };
 

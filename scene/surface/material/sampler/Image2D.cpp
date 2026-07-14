@@ -23,6 +23,8 @@ void Image2D::commitParameters()
   m_inAttribute =
       attributeFromString(getParamString("inAttribute", "attribute0"));
   m_filter = getParamString("filter", "linear");
+  m_wrapMode[0] = wrapModeFromString(getParamString("wrapMode1", "clampToEdge"));
+  m_wrapMode[1] = wrapModeFromString(getParamString("wrapMode2", "clampToEdge"));
 }
 
 void Image2D::finalize()
@@ -39,8 +41,10 @@ void Image2D::finalize()
   auto filter = m_filter == "nearest" ? OSP_TEXTURE_FILTER_NEAREST
                                       : OSP_TEXTURE_FILTER_LINEAR;
   ospSetParam(ot, "filter", OSP_UINT, &filter);
+  ospSetParam(ot, "wrapMode", OSP_VEC2UI, m_wrapMode);
 
   auto unpackedColors = convertToColorArray(*m_image);
+  applyOutTransform(unpackedColors);
   auto size = m_image->size();
   auto d = ospNewSharedData2D(unpackedColors.data(), OSP_VEC4F, size.x, size.y);
   ospSetParam(ot, "data", OSP_DATA, &d);
