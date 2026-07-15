@@ -90,6 +90,11 @@ void Mesh::finalize()
   m_indices = std::move(indices);
 }
 
+bool Mesh::isValid() const
+{
+  return m_vertexPosition;
+}
+
 void Mesh::setColorAttribute(Attribute attr, OSPGeometricModel om)
 {
   Geometry::setColorAttribute(attr, om);

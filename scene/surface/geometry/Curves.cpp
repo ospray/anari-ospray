@@ -164,6 +164,12 @@ void Curves::finalize()
   m_vertexRemap = std::move(vertexRemap);
 }
 
+bool Curves::isValid() const
+{
+  // cone/curve/cylinder needs at least 2 vertices
+  return m_vertexPosition && m_vertexPosition->size() >= 2;
+}
+
 void Curves::setColorAttribute(Attribute attr, OSPGeometricModel om)
 {
   Geometry::setColorAttribute(attr, om);

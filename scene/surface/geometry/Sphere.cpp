@@ -54,6 +54,11 @@ void Sphere::finalize()
   ospCommit(og);
 }
 
+bool Sphere::isValid() const
+{
+  return m_vertexPosition;
+}
+
 void Sphere::setColorAttribute(Attribute attr, OSPGeometricModel om)
 {
   ospRemoveParam(om, "color");

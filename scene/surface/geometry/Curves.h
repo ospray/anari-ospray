@@ -23,6 +23,8 @@ struct Curves : public Geometry
   void commitParameters() override;
   void finalize() override;
 
+  bool isValid() const override;
+
   void setColorAttribute(Attribute attr, OSPGeometricModel om) override;
   void setTextureCoordinateAttribute(Attribute attr) override;
 
