@@ -68,6 +68,21 @@ void Sampler::applyOutTransform(std::vector<float4> &colors) const
     c = linalg::mul(m_outTransform, c) + m_outOffset;
 }
 
+bool Sampler::outTransformNeedsBake(OSPTextureFormat format) const
+{
+  if (!m_hasOutTransform)
+    return false;
+  // L8/LA8 turn (r,0,0,w) into (r,r,r,w); a 'copy R to G,B' transform is then a no-op
+  if (format == OSP_TEXTURE_L8 || format == OSP_TEXTURE_LA8) {
+    const bool broadcastRToGB = m_outTransform.x == float4(1.f, 1.f, 1.f, 0.f)
+        && m_outTransform.w == float4(0.f, 0.f, 0.f, 1.f)
+        && m_outOffset == float4(0.f);
+    if (broadcastRToGB)
+      return false;
+  }
+  return true;
+}
+
 Sampler *Sampler::createInstance(std::string_view subtype, OSPRayGlobalState *s)
 {
   if (subtype == "image1D")

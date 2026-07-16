@@ -34,6 +34,10 @@ struct Sampler : public Object
   // bake 'outTransform'/'outOffset' into texels (affine commutes with filtering)
   void applyOutTransform(std::vector<float4> &colors) const;
 
+  // must the out-transform be baked (blocking the native path)? a 'copy R to
+  // G,B' transform is redundant for L8/LA8 (which already broadcast) -> false
+  bool outTransformNeedsBake(OSPTextureFormat format) const;
+
   OSPTexture m_osprayTexture{nullptr};
 
   mat4 m_inTransform{linalg::identity};

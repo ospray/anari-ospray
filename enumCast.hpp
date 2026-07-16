@@ -100,15 +100,19 @@ inline OSPDataType enumCast(int value)
     return OSP_VEC4C;
   case ANARI_UINT8:
   case ANARI_UFIXED8:
+  case ANARI_UFIXED8_R_SRGB:
     return OSP_UCHAR;
   case ANARI_UINT8_VEC2:
   case ANARI_UFIXED8_VEC2:
+  case ANARI_UFIXED8_RA_SRGB:
     return OSP_VEC2UC;
   case ANARI_UINT8_VEC3:
   case ANARI_UFIXED8_VEC3:
+  case ANARI_UFIXED8_RGB_SRGB:
     return OSP_VEC3UC;
   case ANARI_UINT8_VEC4:
   case ANARI_UFIXED8_VEC4:
+  case ANARI_UFIXED8_RGBA_SRGB:
     return OSP_VEC4UC;
   case ANARI_INT16:
   case ANARI_FIXED16:
@@ -281,9 +285,19 @@ inline OSPTextureFormat enumCast(int value)
     return OSP_TEXTURE_RA16;
   case ANARI_UFIXED16:
     return OSP_TEXTURE_R16;
+  // sRGB-decoded luminance; broadcasts R to G,B (ANARI 0), see outTransformNeedsBake
+  case ANARI_UFIXED8_R_SRGB:
+    return OSP_TEXTURE_L8;
+  case ANARI_UFIXED8_RA_SRGB:
+    return OSP_TEXTURE_LA8;
+  // raw bytes -> OSPRay's single 2*t-1 normal decode (avoids fp32 double-decode)
+  case ANARI_FIXED8_VEC3:
+    return OSP_TEXTURE_RGB8;
+  case ANARI_FIXED8_VEC4:
+    return OSP_TEXTURE_RGBA8;
   default:
-    throw std::runtime_error("Unhandled OSPTextureFormat enum value '"
-        + std::string(anari::toString(ANARIDataType(value))) + "'.");
+    // no native OSPRay texel format; caller falls back to RGBA32F
+    return OSP_TEXTURE_FORMAT_INVALID;
   }
 }
 
