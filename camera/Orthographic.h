@@ -12,9 +12,9 @@ struct Orthographic : public Camera
   Orthographic(OSPRayGlobalState *s);
   void commitParameters() override;
   void finalize() override;
+  void setFrameAspect(float frameAspect) override;
 
  private:
-  float m_aspect{1.f};
   float m_height{1.f};
 };
 

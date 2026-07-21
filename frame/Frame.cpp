@@ -33,7 +33,8 @@ Frame::~Frame()
 bool Frame::isValid() const
 {
   return m_renderer && m_renderer->isValid() && m_camera && m_camera->isValid()
-      && m_world && m_world->isValid();
+      && m_world && m_world->isValid() && m_frameData.size.x > 0
+      && m_frameData.size.y > 0;
 }
 
 OSPRayGlobalState *Frame::deviceState() const
@@ -53,8 +54,7 @@ void Frame::commitParameters()
   m_primIdType =
       getParam<anari::DataType>("channel.primitiveId", ANARI_UNKNOWN);
   m_objIdType = getParam<anari::DataType>("channel.objectId", ANARI_UNKNOWN);
-  m_instIdType =
-      getParam<anari::DataType>("channel.instanceId", ANARI_UNKNOWN);
+  m_instIdType = getParam<anari::DataType>("channel.instanceId", ANARI_UNKNOWN);
 
   if (m_colorType != ANARI_UNKNOWN && m_colorType != ANARI_UFIXED8_VEC4
       && m_colorType != ANARI_UFIXED8_RGBA_SRGB
@@ -62,8 +62,7 @@ void Frame::commitParameters()
     m_colorType = ANARI_UFIXED8_RGBA_SRGB;
   if (m_depthType != ANARI_FLOAT32)
     m_depthType = ANARI_UNKNOWN;
-  if (m_normalType != ANARI_FIXED16_VEC3
-      && m_normalType != ANARI_FLOAT32_VEC3)
+  if (m_normalType != ANARI_FIXED16_VEC3 && m_normalType != ANARI_FLOAT32_VEC3)
     m_normalType = ANARI_UNKNOWN;
   if (m_albedoType != ANARI_UFIXED8_VEC3
       && m_albedoType != ANARI_UFIXED8_RGB_SRGB
@@ -77,7 +76,7 @@ void Frame::commitParameters()
     m_instIdType = ANARI_UNKNOWN;
 
   m_accumulation = getParam<bool>("accumulation", false);
-  m_frameData.size = getParam<uint2>("size", uint2(10));
+  m_frameData.size = getParam<uint2>("size", uint2(0u));
 }
 
 void Frame::finalize()
@@ -97,7 +96,13 @@ void Frame::finalize()
         ANARI_SEVERITY_WARNING, "missing required parameter 'world' on frame");
   }
 
-  initFB(m_renderer && m_renderer->denoise());
+  if (m_frameData.size.x == 0 || m_frameData.size.y == 0) {
+    reportMessage(
+        ANARI_SEVERITY_WARNING, "need positive parameter 'size' on frame");
+  }
+
+  if (isValid())
+    initFB(m_renderer->denoise());
 }
 
 void Frame::initFB(const bool denoising)
@@ -163,25 +168,28 @@ void Frame::renderFrame()
   auto *state = deviceState();
   state->waitOnCurrentFrame();
 
-  auto start = std::chrono::steady_clock::now();
-
   state->commitBuffer.flush();
-
-  if (m_renderer && m_denoising != m_renderer->denoise())
-    initFB(m_renderer->denoise());
-
-  if (m_renderer && m_denoising) {
-    auto quality = m_renderer->denoiseQuality();
-    ospSetParam(m_osprayDenoiser, "quality", OSP_UINT, &quality);
-    bool denoiseAlpha = m_renderer->denoiseAlpha();
-    ospSetParam(m_osprayDenoiser, "denoiseAlpha", OSP_BOOL, &denoiseAlpha);
-    ospCommit(m_osprayDenoiser);
-  }
 
   if (!isValid()) {
     reportMessage(
         ANARI_SEVERITY_ERROR, "skipping render of incomplete frame object");
     return;
+  }
+
+  // an unset camera 'aspect' is derived from the frame dimensions
+  m_camera->setFrameAspect(m_frameData.size.y > 0
+          ? float(m_frameData.size.x) / float(m_frameData.size.y)
+          : 1.f);
+
+  if (m_denoising != m_renderer->denoise())
+    initFB(m_renderer->denoise());
+
+  if (m_denoising) {
+    auto quality = m_renderer->denoiseQuality();
+    ospSetParam(m_osprayDenoiser, "quality", OSP_UINT, &quality);
+    bool denoiseAlpha = m_renderer->denoiseAlpha();
+    ospSetParam(m_osprayDenoiser, "denoiseAlpha", OSP_BOOL, &denoiseAlpha);
+    ospCommit(m_osprayDenoiser);
   }
 
   if (state->commitBuffer.lastObjectFinalization() > m_frameLastRendered) {

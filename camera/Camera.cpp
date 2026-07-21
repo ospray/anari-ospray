@@ -66,6 +66,12 @@ void Camera::commitParameters()
   m_focusDistance = getParam<float>("focusDistance", 1.f);
   m_stereoMode = stereoModeFromString(getParamString("stereoMode", "none"));
   m_interpupillaryDistance = getParam<float>("interpupillaryDistance", 0.0635f);
+  // unset 'aspect' is inherited from the frame dimensions (see setFrameAspect)
+  float aspect = 1.f;
+  if (getParam("aspect", ANARI_FLOAT32, &aspect))
+    m_aspect = aspect;
+  else
+    m_aspect.reset();
 }
 
 void Camera::finalize()
@@ -77,6 +83,18 @@ void Camera::finalize()
   ospSetParam(osprayCamera(), "imageEnd", OSP_VEC2F, &m_imgRegion[2]);
   ospSetParam(osprayCamera(), "nearClip", OSP_FLOAT, &m_near);
   markUpdated();
+}
+
+void Camera::setFrameAspect(float) {}
+
+void Camera::applyAspect(float frameAspect)
+{
+  const float aspect = m_aspect.value_or(frameAspect);
+  if (aspect == m_committedAspect)
+    return;
+  m_committedAspect = aspect;
+  ospSetParam(osprayCamera(), "aspect", OSP_FLOAT, &aspect);
+  ospCommit(osprayCamera());
 }
 
 OSPCamera Camera::osprayCamera() const

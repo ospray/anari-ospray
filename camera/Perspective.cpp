@@ -11,14 +11,12 @@ void Perspective::commitParameters()
 {
   Camera::commitParameters();
   m_fovy = degrees(getParam<float>("fovy", M_PI / 3.f));
-  m_aspect = getParam<float>("aspect", 1.f);
 }
 
 void Perspective::finalize()
 {
   Camera::finalize();
   ospSetParam(osprayCamera(), "fovy", OSP_FLOAT, &m_fovy);
-  ospSetParam(osprayCamera(), "aspect", OSP_FLOAT, &m_aspect);
   // depth of field + stereo
   ospSetParam(osprayCamera(), "apertureRadius", OSP_FLOAT, &m_apertureRadius);
   ospSetParam(osprayCamera(), "focusDistance", OSP_FLOAT, &m_focusDistance);
@@ -28,6 +26,11 @@ void Perspective::finalize()
       OSP_FLOAT,
       &m_interpupillaryDistance);
   ospCommit(osprayCamera());
+}
+
+void Perspective::setFrameAspect(float frameAspect)
+{
+  applyAspect(frameAspect);
 }
 
 } // namespace anari_ospray
