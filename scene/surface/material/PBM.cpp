@@ -32,9 +32,14 @@ void PBM::commitParameters()
   m_normalSampler = getParamObject<Sampler>("normal");
   m_clearcoatNormalSampler = getParamObject<Sampler>("clearcoatNormal");
 
-  m_alphaMode = getParamString("alphaMode", "opaque");
   m_opacity = getParam<float>("opacity", 1.f);
   m_opacitySampler = getParamObject<Sampler>("opacity");
+  const auto alphaMode = getParamString("alphaMode", "opaque");
+  if (alphaMode == "opaque") { // "opaque" overrides any opacity
+    m_opacity = 1.f;
+    m_opacitySampler = nullptr;
+  }
+
   m_metallic = getParam<float>("metallic", 1.f);
   m_metallicSampler = getParamObject<Sampler>("metallic");
   m_roughness = getParam<float>("roughness", 1.f);
@@ -63,12 +68,9 @@ void PBM::commitParameters()
 
 void PBM::finalize()
 {
-  const Sampler *opacitySampler =
-      m_alphaMode == "opaque" ? nullptr : m_opacitySampler.get();
-
   // one shared texcoord stream for all maps; samplers must agree on attribute
   const Sampler *samplers[] = {m_colorSampler.get(),
-      opacitySampler,
+      m_opacitySampler.get(),
       m_metallicSampler.get(),
       m_roughnessSampler.get(),
       m_normalSampler.get(),
@@ -110,10 +112,7 @@ void PBM::finalize()
   };
 
   setColor("baseColor", "map_baseColor", m_color, m_colorSampler.get());
-  setScalar("opacity",
-      "map_opacity",
-      m_alphaMode == "opaque" ? 1.f : m_opacity,
-      opacitySampler);
+  setScalar("opacity", "map_opacity", m_opacity, m_opacitySampler.get());
   setScalar("metallic", "map_metallic", m_metallic, m_metallicSampler.get());
   setScalar(
       "roughness", "map_roughness", m_roughness, m_roughnessSampler.get());

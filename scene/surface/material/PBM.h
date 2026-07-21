@@ -29,7 +29,6 @@ struct PBM : public Material
   helium::ChangeObserverPtr<Sampler> m_sheenRoughnessSampler;
   helium::ChangeObserverPtr<Sampler> m_emissiveSampler;
 
-  std::string m_alphaMode{"opaque"};
   float m_opacity{1.f};
   float m_metallic{1.f};
   float m_roughness{1.f};
