@@ -47,6 +47,8 @@ struct Frame : public helium::BaseFrame
 
  private:
   void initFB(const bool denoising);
+  void releaseFB();
+  void *mapChannel(std::string_view channel, ANARIDataType *pixelType);
 
   struct FrameData
   {

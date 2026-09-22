@@ -26,7 +26,7 @@ Frame::Frame(OSPRayGlobalState *s) : helium::BaseFrame(s) {}
 Frame::~Frame()
 {
   wait();
-  ospRelease(m_osprayFrameBuffer);
+  releaseFB();
   ospRelease(m_osprayDenoiser);
 }
 
@@ -103,15 +103,34 @@ void Frame::finalize()
 
   if (isValid())
     initFB(m_renderer->denoise());
+  else
+    releaseFB();
+}
+
+void Frame::releaseFB()
+{
+  if (!m_osprayFrameBuffer)
+    return;
+
+  wait();
+  for (auto *buf : {&m_osprayColorBuffer,
+           &m_osprayDepthBuffer,
+           &m_osprayAlbedoBuffer,
+           &m_osprayNormalBuffer,
+           &m_osprayPrimIdBuffer,
+           &m_osprayObjIdBuffer,
+           &m_osprayInstIdBuffer}) {
+    if (*buf)
+      ospUnmapFrameBuffer(*buf, m_osprayFrameBuffer);
+    *buf = nullptr;
+  }
+  ospRelease(m_osprayFrameBuffer);
+  m_osprayFrameBuffer = nullptr;
 }
 
 void Frame::initFB(const bool denoising)
 {
-  if (m_osprayFrameBuffer) {
-    wait();
-    ospRelease(m_osprayFrameBuffer);
-    m_osprayFrameBuffer = nullptr;
-  }
+  releaseFB();
 
   m_denoising = denoising;
   uint32_t flags = OSP_FB_COLOR;
@@ -181,7 +200,7 @@ void Frame::renderFrame()
           ? float(m_frameData.size.x) / float(m_frameData.size.y)
           : 1.f);
 
-  if (m_denoising != m_renderer->denoise())
+  if (!m_osprayFrameBuffer || m_denoising != m_renderer->denoise())
     initFB(m_renderer->denoise());
 
   if (m_denoising) {
@@ -218,9 +237,20 @@ void *Frame::map(std::string_view channel,
 {
   wait();
 
-  *width = m_frameData.size.x;
-  *height = m_frameData.size.y;
+  void *ptr = mapChannel(channel, pixelType);
+  if (ptr) {
+    *width = m_frameData.size.x;
+    *height = m_frameData.size.y;
+  } else {
+    *width = 0;
+    *height = 0;
+    *pixelType = ANARI_UNKNOWN;
+  }
+  return ptr;
+}
 
+void *Frame::mapChannel(std::string_view channel, ANARIDataType *pixelType)
+{
   const size_t numPixels =
       size_t(m_frameData.size.x) * size_t(m_frameData.size.y);
 
@@ -283,9 +313,6 @@ void *Frame::map(std::string_view channel,
     return mapOspray(OSP_FB_ID_INSTANCE, m_osprayInstIdBuffer);
   }
 
-  *width = 0;
-  *height = 0;
-  *pixelType = ANARI_UNKNOWN;
   return nullptr;
 }
 
